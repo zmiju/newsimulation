@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "rankings": {
+      ".read": true,
+      "$gameType": {
+        ".write": true,
+        ".indexOn": ["score"]
+      }
+    }
+  }
+}

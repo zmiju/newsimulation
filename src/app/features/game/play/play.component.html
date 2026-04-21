@@ -1,0 +1,173 @@
+@if (scenario; as s) {
+  @if (sim; as sim) {
+  <div class="play-view" @pageEnter>
+    <!-- Metrics + actions bar -->
+    <div class="simulation-top" @simTopEnter>
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+
+        <!-- Metrics row -->
+        <div class="d-flex align-items-center flex-wrap gap-0" @metricsStagger>
+          <div class="metric-item">
+            <span class="metric-label">{{ 'SIMULATION_budget' | translate }}</span>
+            <span class="metric-value"
+                  [animateOnChange]="sim.bac | number:'1.0-0'">
+              {{ sim.bac | number:'1.0-0' }}{{ 'MAIN_currency' | translate }}
+            </span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">{{ 'SIMULATION_pv' | translate }}</span>
+            <span class="metric-value"
+                  [animateOnChange]="sim.pv | number:'1.0-0'">
+              {{ sim.pv | number:'1.0-0' }}
+            </span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">{{ 'SIMULATION_ev' | translate }}</span>
+            <span class="metric-value metric-value--ev"
+                  [animateOnChange]="sim.ev | number:'1.0-0'"
+                  animateColor="#16a34a">
+              {{ sim.ev | number:'1.0-0' }}
+            </span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">{{ 'SIMULATION_ac' | translate }}</span>
+            <span class="metric-value metric-value--ac"
+                  [animateOnChange]="sim.ac | number:'1.0-0'"
+                  animateColor="#dc2626">
+              {{ sim.ac | number:'1.0-0' }}
+            </span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">{{ 'SIMULATION_spi' | translate }}</span>
+            <span class="metric-value"
+                  [class.metric-value--warn]="sim.spi < 0.95"
+                  [class.metric-value--good]="sim.spi >= 1"
+                  [animateOnChange]="sim.spi | number:'1.2-2'">
+              {{ sim.spi | number:'1.2-2' }}
+            </span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">{{ 'SIMULATION_cpi' | translate }}</span>
+            <span class="metric-value"
+                  [class.metric-value--warn]="sim.cpi < 0.95"
+                  [class.metric-value--good]="sim.cpi >= 1"
+                  [animateOnChange]="sim.cpi | number:'1.2-2'">
+              {{ sim.cpi | number:'1.2-2' }}
+            </span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">{{ 'GAME_week' | translate }}</span>
+            <span class="metric-value metric-value--week">
+              {{ sim.time | number:'1.2-2' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="d-flex align-items-center gap-2 action-bar">
+          @if (!sym.isPlaying()) {
+            <button class="btn btn-primary btn-sm btn-animated" (click)="play()" @buttonSwap>
+              &#9654; {{ 'SIMULATION_play' | translate }}
+            </button>
+          } @else {
+            <button class="btn btn-warning btn-sm btn-animated" (click)="pause()" @buttonSwap>
+              &#9646;&#9646; {{ 'SIMULATION_pause' | translate }}
+            </button>
+          }
+          <button class="btn btn-outline-secondary btn-sm btn-animated" (click)="reset()">
+            {{ 'SIMULATION_reset' | translate }}
+          </button>
+          @if (isRiskAvailable) {
+            <button class="btn btn-danger btn-sm btn-animated btn-risk" (click)="fireRisk()" @buttonSwap>
+              &#9888; {{ 'SIMULATION_risk' | translate }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- EVM chart: PV (dashed blue), EV (green), AC (red) grow as simulation runs -->
+    <div class="evm-chart-wrap" @chartEnter style="width: 100%; max-width: 700px; height: clamp(220px, 40vw, 320px); margin: 12px 0;">
+      <canvas baseChart
+              [data]="lineChartData"
+              [options]="lineChartOptions"
+              type="line">
+      </canvas>
+    </div>
+
+    <!-- Drop group: palette + Gantt overlays share the same group -->
+    <div cdkDropListGroup>
+
+      <!-- Resource palette -->
+      <div class="palette-wrap" @paletteEnter>
+        <div cdkDropList
+             [cdkDropListData]="sim.resources"
+             cdkDropListOrientation="horizontal"
+             class="resources-container"
+             @resourcesStagger>
+          @for (r of sim.resources; track r.id) {
+            <div cdkDrag [cdkDragData]="r"
+                 class="resource-chip badge"
+                 [class.resource-chip--overloaded]="sym.isResourceOverloaded(r)"
+                 [style.background]="r.color">
+              {{ r.name }}
+              <small style="opacity:0.75;">({{ r.speed | number:'1.1-1' }}x, {{ r.cost | number:'1.1-1' }}{{ 'MAIN_currency' | translate }})</small>
+              <div class="resource-motivation"
+                   [title]="('SIMULATION_motivation' | translate) + ': ' + (r.motivation * 100 | number:'1.0-0') + '%'"
+                   [attr.aria-label]="'motivation ' + (r.motivation * 100 | number:'1.0-0') + '%'">
+                <div class="resource-motivation__bar"
+                     [class.resource-motivation__bar--low]="r.motivation < 0.5"
+                     [class.resource-motivation__bar--critical]="r.motivation < 0.25"
+                     [style.width.%]="sym.getResourceMotivation(r) * 100"></div>
+              </div>
+              @if (sym.isResourceOverloaded(r)) {
+                <span class="resource-overload-badge"
+                      [title]="('SIMULATION_resource_overloaded' | translate) + ' (' + sym.getNumberOfTasksForResource(r) + ')'"
+                      aria-label="overloaded">
+                  &#9888;
+                  <span class="resource-overload-badge__count">{{ sym.getNumberOfTasksForResource(r) }}</span>
+                </span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Gantt chart -->
+      <div id="svg-container" class="gantt-container" @ganttEnter
+           style="overflow: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
+        <app-gantt [scenario]="s" />
+      </div>
+
+    </div>
+
+    <!-- Risk popup (inline modal). Pauses simulation while open, applies impact on close. -->
+    @if (pendingRisk; as risk) {
+      <div class="risk-popup-backdrop" (click)="closeRiskPopup()" @riskBackdrop></div>
+      <div class="risk-popup" role="dialog" aria-modal="true" @riskPopup>
+        <div class="risk-popup__header">
+          <span class="risk-popup__icon risk-popup__icon--shake">&#9888;</span>
+          <h5>{{ 'GAME_risk_title' | translate }}</h5>
+        </div>
+        <div class="risk-popup__body">
+          <p><strong>{{ risk.name }}</strong></p>
+          @if (risk.hasCounter) {
+            <div class="alert alert-success">
+              {{ 'GAME_risk_counter' | translate }}
+            </div>
+          } @else if (risk.canHaveCounter) {
+            <div class="alert alert-danger">
+              {{ 'GAME_risk_no_counter' | translate }}
+            </div>
+          }
+        </div>
+        <div class="risk-popup__footer">
+          <button class="btn btn-primary btn-sm btn-animated" (click)="closeRiskPopup()">
+            {{ 'GAME-OVER-modal_ok' | translate }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+  }
+}

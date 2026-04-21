@@ -1,0 +1,999 @@
+{
+	"risks" : [ {
+		"name" : "Zadanie {number} zajmie więcej czasu o {amount} dni",
+		"target" : "task",
+		"targetId" : "random",
+		"effect" : "+",
+		"type" : "effort"
+	}, {
+		"name" : "Zadanie {number} zajmie mniej czasu o {amount} dni",
+		"target" : "task",
+		"targetId" : "random",
+		"effect" : "-",
+		"type" : "effort"
+	}, {
+		"name" : "Koszt pracownika {resource} wzrósł",
+		"target" : "resource",
+		"targetId" : "random",
+		"effect" : "+",
+		"type" : "cost"
+	}, {
+		"name" : "Koszt pracownika {resource} spadł",
+		"target" : "resource",
+		"targetId" : "random",
+		"effect" : "-",
+		"type" : "cost"
+	}, {
+		"name" : "Pracownik {resource} podniósł swoją produktywność",
+		"target" : "resource",
+		"targetId" : "random",
+		"effect" : "+",
+		"type" : "speed"
+	}, {
+		"name" : "Pracownik {resource} będzie nieobecny przez {amount} dni",
+		"target" : "resource",
+		"targetId" : "random",
+		"type" : "gone"
+	} ],
+	"projects" : [
+			{
+				"name" : "Poziom 1 - wyzwanie czasu",
+				"type" : "tournament",
+				"description" : "Zostałeś zatrudniony na stanowisko asystenta młodszego koordynatora projektów. Twoje pierwsze wyzwanie to pokonanie czasu w prostym projekcie. Zaalokuj po jednym człowieku do każdego zadania i  ukończ ten projekt w ciągu 3 tygodni.",
+				"multitaskingPenalty" : "0.2",
+				"crashingPenalty" : "0.2",
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 2.32,
+					"dependants" : [],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 2.32,
+					"dependants" : [],
+					"dependsOn" : []
+				} ],
+				"resources" : [ {
+					"name" : "Staś",
+					"cost" : 1,
+					"speed" : 1,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Dorota",
+					"cost" : 1,
+					"speed" : 1,
+					"color" : "#FF6600"
+				} ],
+				"unused" : {
+					"resourceCount" : "2",
+					"taskCount" : "2",
+					"kwota" : "666",
+					"animationSpeed" : "160",
+					"projectDelay" : "2"
+				}
+			},
+			{
+				"name" : "Poziom 2 - pierwsza ścieżka krytyczna",
+				"type" : "tournament",
+				"description" : "Brawo za ukończenie poziomu 1. Teraz otrzymałeś projekt z kilkoma zależnościami między zadaniami, pamiętaj o nich przy alokacji ludzi",
+				"multitaskingPenalty" : "0.2",
+				"crashingPenalty" : "0.2",
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 1.52,
+					"dependants" : [ "1" ],
+					"dependsOn" : []
+				}, {
+					"start" : 1.54,
+					"effort" : 1.5,
+					"dependants" : [ "2" ],
+					"dependsOn" : [ 0 ]
+				}, {
+					"start" : 3.06,
+					"effort" : 0.74,
+					"dependants" : [],
+					"dependsOn" : [ 1 ]
+				}, {
+					"start" : 0,
+					"effort" : 2.28,
+					"dependants" : [],
+					"dependsOn" : []
+				} ],
+				"resources" : [ {
+					"name" : "Staś",
+					"cost" : 1,
+					"speed" : 1,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Dorota",
+					"cost" : 1,
+					"speed" : 1,
+					"color" : "#FF6600"
+				} ],
+				"unused" : {
+					"resourceCount" : "2",
+					"taskCount" : "4",
+					"kwota" : "666",
+					"animationSpeed" : "160",
+					"projectDelay" : "2"
+				}
+			},
+			{
+			"name" : "Poziom 3 - nowy w zespole projektowym",
+			"type" : "tournament",
+			"description" : "Jeden z członków zespołu ma nieco mniejszą wydajność niż zakłada plan. Weź to pod uwagę przy alokacji zadań.",
+			"multitaskingPenalty" : "0.2",
+			"crashingPenalty" : "0.2",
+			"tasks" : [ {
+				"start" : 0,
+				"effort" : 1.52,
+				"dependants" : [ "1" ],
+				"dependsOn" : []
+			}, {
+				"start" : 1.54,
+				"effort" : 1.5,
+				"dependants" : [ "2" ],
+				"dependsOn" : [ 0 ]
+			}, {
+				"start" : 3.06,
+				"effort" : 0.74,
+				"dependants" : [],
+				"dependsOn" : [ 1, 3 ]
+			}, {
+				"start" : 0.78,
+				"effort" : 1.5,
+				"dependants" : [ "2" ],
+				"dependsOn" : []
+			} ],
+			"resources" : [ {
+				"name" : "Staś",
+				"cost" : 1,
+				"speed" : 1,
+				"color" : "#00FF00"
+			}, {
+				"name" : "Joanna",
+				"cost" : 1,
+				"speed" : 1.2,
+				"color" : "#FF6600"
+			} ],
+			"unused" : {
+				"resourceCount" : "2",
+				"taskCount" : "4",
+				"kwota" : "666",
+				"animationSpeed" : "160",
+				"projectDelay" : "2"
+			}
+		},
+		{
+			"name" : "Poziom 4 - powoli do przodu",
+			"type" : "tournament",
+			"description" : "Tym razem zespół nie jest najsilniejszy, ale i projekt nie powinien być wielkim wyzwaniem. Ważne, aby chronić ścieżkę krytyczną.",
+			"multitaskingPenalty" : "0.2",
+			"crashingPenalty" : "0.2",
+			"tasks" : [ {
+				"start" : 0,
+				"effort" : 1.52,
+				"dependants" : [ "1" ],
+				"dependsOn" : []
+			}, {
+				"start" : 1.54,
+				"effort" : 1.5,
+				"dependants" : [ "2" ],
+				"dependsOn" : [ 0 ]
+			}, {
+				"start" : 3.06,
+				"effort" : 0.74,
+				"dependants" : [],
+				"dependsOn" : [ 1 ]
+			}, {
+				"start" : 0,
+				"effort" : 0.76,
+				"dependants" : [],
+				"dependsOn" : []
+			}, {
+				"start" : 0,
+				"effort" : 0.76,
+				"dependants" : [ "5" ],
+				"dependsOn" : []
+			}, {
+				"start" : 0.78,
+				"effort" : 1.5,
+				"dependants" : [],
+				"dependsOn" : [ 4 ]
+			} ],
+			"resources" : [ {
+				"name" : "Jarosław",
+				"cost" : 0.8,
+				"speed" : 1.2,
+				"color" : "#00FF00"
+			}, {
+				"name" : "Joanna",
+				"cost" : 0.8,
+				"speed" : 1.2,
+				"color" : "#FF6600"
+			} ],
+			"unused" : {
+				"resourceCount" : "2",
+				"taskCount" : "6",
+				"kwota" : "666",
+				"animationSpeed" : "160",
+				"projectDelay" : "2"
+			}
+		},
+			{
+				"name" : "Poziom 5 - Wyzwanie ścieżki krytycznej",
+				"type" : "tournament",
+				"description" : "Otrzymałeś dość ryzykowny projekt, bowiem większość zadań jest na ścieżce krytycznej. W dodatku połowa twojego zespołu to nowicjusze. Co zrobisz: zwolnisz się, czy wykonasz zadanie? Przy okazji wiadomość - właśnie awansowałeś na koordynatora projektów.",
+				"multitaskingPenalty" : "0.2",
+				"crashingPenalty" : "0.2",
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "1" ],
+					"dependsOn" : []
+				}, {
+					"start" : 0.78,
+					"effort" : 0.74,
+					"dependants" : [ "2" ],
+					"dependsOn" : [ 0 ]
+				}, {
+					"start" : 1.54,
+					"effort" : 0.74,
+					"dependants" : [ "3" ],
+					"dependsOn" : [ 1 ]
+				}, {
+					"start" : 2.3,
+					"effort" : 0.74,
+					"dependants" : [],
+					"dependsOn" : [ 2 ]
+				}, {
+					"start" : 0,
+					"effort" : 3.04,
+					"dependants" : [],
+					"dependsOn" : []
+				} ],
+				"resources" : [ {
+					"name" : "Tomasz",
+					"cost" : 1,
+					"speed" : 0.8,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Joanna",
+					"cost" : 1,
+					"speed" : 1.2,
+					"color" : "#FF6600"
+				} ],
+				"unused" : {
+					"resourceCount" : "2",
+					"taskCount" : "5",
+					"kwota" : "666",
+					"animationSpeed" : "160",
+					"projectDelay" : "2"
+				}
+			},
+			{
+				"name" : "Poziom 6 - wszystko zmierza do wspólnego końca",
+				"type" : "tournament",
+				"description" : "Twój szósty projekt jest dosyć pogmatwany. Pamiętaj - pewne opóźnienia można zaakceptować pod warunkiem, że całość będzie w terminie.",
+				"multitaskingPenalty" : "0.2",
+				"crashingPenalty" : "0.2",
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "1" ],
+					"dependsOn" : []
+				}, {
+					"start" : 0.78,
+					"effort" : 1.5,
+					"dependants" : [ "6" ],
+					"dependsOn" : [ 0 ]
+				}, {
+					"start" : 0,
+					"effort" : 2.28,
+					"dependants" : [ "6" ],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "4" ],
+					"dependsOn" : []
+				}, {
+					"start" : 0.78,
+					"effort" : 1.5,
+					"dependants" : [ "6" ],
+					"dependsOn" : [ 3 ]
+				}, {
+					"start" : 0,
+					"effort" : 1.52,
+					"dependants" : [ "6" ],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 3.0,
+					"dependants" : [],
+					"dependsOn" : [ 1, 2, 4, 5 ]
+				} ],
+				"resources" : [ {
+					"name" : "Tomasz",
+					"cost" : 1,
+					"speed" : 0.8,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Joanna",
+					"cost" : 1,
+					"speed" : 1.2,
+					"color" : "#FF6600"
+				}, {
+					"name" : "Dorota",
+					"cost" : 1,
+					"speed" : 1,
+					"color" : "#3366FF"
+				} ],
+				"unused" : {
+					"resourceCount" : "3",
+					"taskCount" : "7",
+					"kwota" : "666",
+					"animationSpeed" : "160",
+					"projectDelay" : "2"
+				}
+			},
+			{
+				"name" : "Poziom 7 - Patchwork",
+				"type" : "tournament",
+				"description" : "W tym projekcie będziesz walczyć z wielozadaniowością. Staraj się tak przeplatać zadania w czasie, aby ten sam człowiek nie wykonywał kilku zadań naraz. Ludzie bardzo nie lubią się przełączać między zadaniami.",
+				"multitaskingPenalty" : "0.4",
+				"crashingPenalty" : "0.2",
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "1" ],
+					"dependsOn" : []
+				}, {
+					"start" : 1.54,
+					"effort" : 0.74,
+					"dependants" : [ "2" ],
+					"dependsOn" : [ 0 ]
+				}, {
+					"start" : 2.3,
+					"effort" : 1.5,
+					"dependants" : [],
+					"dependsOn" : [ 1 ]
+				}, {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "5" ],
+					"dependsOn" : []
+				}, {
+					"start" : 0.78,
+					"effort" : 0.74,
+					"dependants" : [],
+					"dependsOn" : [ 4 ]
+				}, {
+					"start" : 0.8,
+					"effort" : 0.72,
+					"dependants" : [ "7" ],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 0.74,
+					"dependants" : [],
+					"dependsOn" : [ 6 ]
+				} ],
+				"resources" : [ {
+					"name" : "Jarosław",
+					"cost" : 0.8,
+					"speed" : 1.2,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Joanna",
+					"cost" : 0.8,
+					"speed" : 1.2,
+					"color" : "#FF6600"
+				} ],
+				"unused" : {
+					"resourceCount" : "2",
+					"taskCount" : "8",
+					"kwota" : "666",
+					"animationSpeed" : "160",
+					"projectDelay" : "2"
+				}
+			},
+			{
+				"name" : "Poziom 8 - Marsz ku klęsce",
+				"type" : "tournament",
+				"description" : "Ten projekt naprawdę zmierza ku klęsce. Nie dość, że słaby zespół to jeszcze mnóstwo równoległych zadań. Tylko prawdziwy heros mu podoła w terminie i budżecie.",
+				"multitaskingPenalty" : "0.4",
+				"crashingPenalty" : "0.2",
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "1" ],
+					"dependsOn" : []
+				}, {
+					"start" : 1.54,
+					"effort" : 0.74,
+					"dependants" : [ "2" ],
+					"dependsOn" : [ 0 ]
+				}, {
+					"start" : 3.06,
+					"effort" : 1.5,
+					"dependants" : [],
+					"dependsOn" : [ 1 ]
+				}, {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "5" ],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 1.52,
+					"dependants" : [],
+					"dependsOn" : [ 4 ]
+				}, {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "7" ],
+					"dependsOn" : []
+				}, {
+					"start" : 1.54,
+					"effort" : 1.5,
+					"dependants" : [],
+					"dependsOn" : [ 6 ]
+				} ],
+				"resources" : [ {
+					"name" : "Jarosław",
+					"cost" : 0.8,
+					"speed" : 1.2,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Joanna",
+					"cost" : 0.8,
+					"speed" : 1.2,
+					"color" : "#FF6600"
+				} ],
+				"unused" : {
+					"resourceCount" : "2",
+					"taskCount" : "8",
+					"kwota" : "666",
+					"animationSpeed" : "160",
+					"projectDelay" : "2"
+				}
+			},
+			{
+				"name" : "Poziom 9 - Ja pomogę tobie, ty pomożesz mi",
+				"type" : "tournament",
+				"description" : "Zarząd dostrzegł, że się starasz i awansował cię na młodszego kierownika projektów. Przy okazji też podrzucił ci projekt, którego nikt nie chciał wziąć ze słowami: \"Młody jest, będzie chciał się wykazać\".",
+				"multitaskingPenalty" : "0.2",
+				"crashingPenalty" : "0.2",
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "1" ],
+					"dependsOn" : []
+				}, {
+					"start" : 3.06,
+					"effort" : 0.74,
+					"dependants" : [ "3" ],
+					"dependsOn" : [ 0, 7 ]
+				}, {
+					"start" : 0,
+					"effort" : 2.28,
+					"dependants" : [ "3" ],
+					"dependsOn" : []
+				}, {
+					"start" : 3.82,
+					"effort" : 1.5,
+					"dependants" : [],
+					"dependsOn" : [ 1, 2, 5 ]
+				}, {
+					"start" : 0,
+					"effort" : 1.52,
+					"dependants" : [ "5" ],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 1.5,
+					"dependants" : [ "3" ],
+					"dependsOn" : [ 4 ]
+				}, {
+					"start" : 0,
+					"effort" : 1.52,
+					"dependants" : [ "7" ],
+					"dependsOn" : []
+				}, {
+					"start" : 1.54,
+					"effort" : 1.5,
+					"dependants" : [ "1" ],
+					"dependsOn" : [ 6 ]
+				} ],
+				"resources" : [ {
+					"name" : "Tomasz",
+					"cost" : 1,
+					"speed" : 0.8,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Joanna",
+					"cost" : 1,
+					"speed" : 1.2,
+					"color" : "#FF6600"
+				}, {
+					"name" : "Dorota",
+					"cost" : 1,
+					"speed" : 1,
+					"color" : "#3366FF"
+				} ],
+				"unused" : {
+					"resourceCount" : "3",
+					"taskCount" : "8",
+					"kwota" : "666",
+					"animationSpeed" : "160",
+					"projectDelay" : "2"
+				}
+			},
+
+			{
+				"name" : "Poziom 10 - Kaloryfer",
+				"type" : "tournament",
+				"description" : "Na takie projekty mówimy kaloryfer. Wszystkie zadania zaplanowane naraz i do tego powolny zespół. Jednak tutaj nie czas, a budżet może okazać się prawdziwym wyzwaniem. Pamiętaj o crashingu.",
+				"multitaskingPenalty" : "0.2",
+				"crashingPenalty" : "0.9",
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 2.28,
+					"dependants" : [ "3" ],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 2.28,
+					"dependants" : [ "3" ],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 2.28,
+					"dependants" : [ "3" ],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 3.0200000000000005,
+					"dependants" : [],
+					"dependsOn" : [ 0, 1, 2 ]
+				} ],
+				"resources" : [ {
+					"name" : "Joanna",
+					"cost" : 0.8,
+					"speed" : 1.2,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Jarosław",
+					"cost" : 1,
+					"speed" : 1.2,
+					"color" : "#FF6600"
+				}, {
+					"name" : "Daniel",
+					"cost" : 1,
+					"speed" : 1.2,
+					"color" : "#3366FF"
+				} ],
+				"unused" : {
+					"resourceCount" : "3",
+					"taskCount" : "4",
+					"kwota" : "666",
+					"animationSpeed" : "160",
+					"projectDelay" : "2"
+				}
+			},
+			{
+				"name" : "Poziom 11 - Drogi ekspert",
+				"type" : "tournament",
+				"description" : "Do twojego zespołu dołączył zewnętrzny ekspert, który nie jest co prawda szybszy, ale za to dużo droższy od innych pracowników. No i jest bardzo ładna, co ma znaczenie dla morale zespołu.",
+				"multitaskingPenalty" : "0.2",
+				"crashingPenalty" : "0.2",
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "1" ],
+					"dependsOn" : []
+				}, {
+					"start" : 1.54,
+					"effort" : 0.74,
+					"dependants" : [ "6" ],
+					"dependsOn" : [ 0 ]
+				}, {
+					"start" : 0,
+					"effort" : 2.28,
+					"dependants" : [ "6" ],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 0.76,
+					"dependants" : [ "4" ],
+					"dependsOn" : []
+				}, {
+					"start" : 1.54,
+					"effort" : 0.7399999999999998,
+					"dependants" : [ "6" ],
+					"dependsOn" : [ 3 ]
+				}, {
+					"start" : 0,
+					"effort" : 1.52,
+					"dependants" : [ "6" ],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 3.0200000000000005,
+					"dependants" : [],
+					"dependsOn" : [ 1, 2, 4, 5 ]
+				} ],
+				"resources" : [ {
+					"name" : "Tomasz",
+					"cost" : 1,
+					"speed" : 0.8,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Sandra",
+					"cost" : 1.2,
+					"speed" : 1.2,
+					"color" : "#FF6600"
+				}, {
+					"name" : "Dorota",
+					"cost" : 1,
+					"speed" : 1,
+					"color" : "#3366FF"
+				} ],
+				"unused" : {
+					"resourceCount" : "3",
+					"taskCount" : "7",
+					"kwota" : "666",
+					"animationSpeed" : "160",
+					"projectDelay" : "2"
+				}
+			},
+			{
+				"name" : "Lekcja 1 - sklep internetowy",
+				"type" : "training",
+				"description" : "",
+				"descriptionUrl" : "views/scenarios/lesson1.html",
+				"multitaskingPenalty" : "0.2",
+				"crashingPenalty" : "0.2",
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 0.80,
+					"dependants" : ["1","2"],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 1.00,
+					"dependants" : ["3"],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 4.00,
+					"dependants" : ["3","4"],
+					"dependsOn" : []
+				} , {
+					"start" : 0,
+					"effort" : 1.20,
+					"dependants" : [],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 1.40,
+					"dependants" : ["5","6"],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 0.40,
+					"dependants" : ["6"],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 0.60,
+					"dependants" : [],
+					"dependsOn" : []
+				} ],
+				"resources" : [ {
+					"name" : "Adam",
+					"cost" : 1,
+					"speed" : 1,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Weronika",
+					"cost" : 1,
+					"speed" : 1.2,
+					"color" : "#FF6600"
+				}, {
+					"name" : "Paweł",
+					"cost" : 1.2,
+					"speed" : 0.8,
+					"color" : "#3366FF"
+				}, {
+					"name" : "Agnieszka",
+					"cost" : 0.8,
+					"speed" : 1.2,
+					"color" : "#3366FF"
+				}  ],
+				"counterRisks" : [ {
+					"name" : "Szkolenie dla zespołu z analizy biznesowej",
+					"cost" : 10,
+					"risk" : {
+						"name" : "Pracochłonność Zdefiniowania wymagań wzrosła z powodu braku kompetencji zespołu",
+						"target" : "task",
+						"targetId" : 0,
+						"effect" : "+",
+						"type" : "effort",
+						"time" : 0.5
+					}
+				}, {
+					"name" : "Ekspres do kawy",
+					"cost" : 100
+				}, {
+					"name" : "Wyjazd integracyjny",
+					"cost" : 50,
+					"risk" : {
+						"name" : "Pracownik {resource} obniżył swoją produktywność z powodu spadku motywacji",
+						"target" : "resource",
+						"targetId" : 0,
+						"effect" : "-",
+						"type" : "speed",
+						"time" : 3
+					}
+				},  {
+					"name" : "Zastępstwo Agnieszki w innym projekcie",
+					"cost" : 20,
+					"risk" : {
+						"name" : "Pracownik {resource} będzie nieobecny przez {amount} dni",
+						"target" : "resource",
+						"targetId" : 3,
+						"effect" : "+",
+						"type" : "gone",
+						"time" : 2
+					}
+				}, {
+					"name" : "Konsultant do witryny internetowej",
+					"cost" : 50
+				},  {
+					"name" : "Nowe meble biurowe",
+					"cost" : 200
+				} ]
+			},
+			{
+				"name" : "Lesson 2 - program Every Tree",
+				"type" : "training",
+				"description" : "",
+				"descriptionUrl" : "views/scenarios/lesson2.html",
+				"multitaskingPenalty" : 0.4,
+				"crashingPenalty" : 0.2,
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 1.0,
+					"dependants" : [ "2" ],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 0.6,
+					"dependants" : [ "2" ],
+					"dependsOn" : [ 0 ]
+				}, {
+					"start" : 0.6,
+					"effort" : 0.7,
+					"dependants" : [ "3","12" ],
+					"dependsOn" : []
+				}, {
+					"start" : 1.6,
+					"effort" : 1.0,
+					"dependants" : ["4","5","6","7","8"],
+					"dependsOn" : []
+				}, {
+					"start" : 0,
+					"effort" : 1.0,
+					"dependants" : ["6","7"],
+					"dependsOn" : []
+				}, {
+					"start" : 0.78,
+					"effort" : 0.8,
+					"dependants" : ["8","9"],
+					"dependsOn" : []
+				}, {
+					"start" : 0.8,
+					"effort" : 2.5,
+					"dependants" : ["10","14"],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 3.2,
+					"dependants" : ["14"],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 1.0,
+					"dependants" : ["9"],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 1.6,
+					"dependants" : ["15"],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 1.0,
+					"dependants" : ["11"],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 1.4,
+					"dependants" : ["16"],
+					"dependsOn" : []
+				}, {
+					"start" : 1.7,
+					"effort" : 1.2,
+					"dependants" : ["13"],
+					"dependsOn" : []
+				}, {
+					"start" : 3.0,
+					"effort" : 3.0,
+					"dependants" : ["17"],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 0.8,
+					"dependants" : ["15"],
+					"dependsOn" : []
+				}, {
+					"start" : 7.0,
+					"effort" : 1.2,
+					"dependants" : ["16"],
+					"dependsOn" : []
+				}, {
+					"start" : 2.3,
+					"effort" : 0.8,
+					"dependants" : ["17"],
+					"dependsOn" : []
+				}, {
+					"start" : 8.0,
+					"effort" : 0.4,
+					"dependants" : ["18"],
+					"dependsOn" : []
+				}, {
+					"start" : 8.0,
+					"effort" : 0.4,
+					"dependants" : [],
+					"dependsOn" : []
+				}            ],
+				"resources" : [ {
+					"name" : "Adam",
+					"cost" : 0.8,
+					"speed" : 1.2,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Anna",
+					"cost" : 1.2,
+					"speed" : 1,
+					"color" : "#FF6600"
+				}, {
+					"name" : "Jagoda",
+					"cost" : 1,
+					"speed" : 1,
+					"color" : "#3366FF"
+				}, {
+					"name" : "Steve",
+					"cost" : 0.8,
+					"speed" : 0.8,
+					"color" : "#117A7A"
+				}, {
+					"name" : "Jerry",
+					"cost" : 1.2,
+					"speed" : 1.2,
+					"color" : "#2626CC"
+				}, {
+					"name" : "Tom",
+					"cost" : 1,
+					"speed" : 0.8,
+					"color" : "#335E5E"
+				}  ]
+			},
+					{
+				"name" : "Lesson 3 - Bridge over Hoover Dam",
+				"type" : "training",
+				"description" : "",
+				"descriptionUrl" : "views/scenarios/lesson3.html",
+				"multitaskingPenalty" : 0.5,
+				"crashingPenalty" : 0.3,
+				"tasks" : [ {
+					"start" : 0,
+					"effort" : 1,
+					"dependants" : ["2","3"],
+					"dependsOn" : []
+				}, {
+					"start" : 8.3,
+					"effort" : 0.2,
+					"dependants" : [],
+					"dependsOn" : []
+				}, {
+					"start" : 1,
+					"effort" : 3.9,
+					"dependants" : ["7"],
+					"dependsOn" : []
+				}, {
+					"start" : 1,
+					"effort" : 3.7,
+					"dependants" : ["5"],
+					"dependsOn" : []
+				}, {
+					"start" : 8.3,
+					"effort" : 0.2,
+					"dependants" : [],
+					"dependsOn" : []
+				}, {
+					"start" : 4.7,
+					"effort" : 0.4,
+					"dependants" : ["7"],
+					"dependsOn" : []
+				}, {
+					"start" : 7.7,
+					"effort" : 0.4,
+					"dependants" : ["11"],
+					"dependsOn" : []
+				}, {
+					"start" : 5.1,
+					"effort" : 2,
+					"dependants" : ["6","8","10"],
+					"dependsOn" : []
+				}, {
+					"start" : 7.1,
+					"effort" : 0.6,
+					"dependants" : ["9","10"],
+					"dependsOn" : []
+				}, {
+					"start" : 7.7,
+					"effort" : 0.6,
+					"dependants" : ["1","4","10"],
+					"dependsOn" : []
+				}, {
+					"start" : 8.3,
+					"effort" : 0.4,
+					"dependants" : [],
+					"dependsOn" : []
+				}, {
+					"start" : 8.1,
+					"effort" : 1.2,
+					"dependants" : [],
+					"dependsOn" : []
+				} ],
+				"resources" : [ {
+					"name" : "Internal experienced",
+					"cost" : 0.8,
+					"speed" : 1.2,
+					"color" : "#00FF00"
+				}, {
+					"name" : "Subcontractor A",
+					"cost" : 1.2,
+					"speed" : 1,
+					"color" : "#FF6600"
+				}, {
+					"name" : "Standard team",
+					"cost" : 1,
+					"speed" : 1,
+					"color" : "#3366FF"
+				}, {
+					"name" : "Novice team",
+					"cost" : 0.8,
+					"speed" : 0.8,
+					"color" : "#117A7A"
+				}, {
+					"name" : "Subcontractor B",
+					"cost" : 1.2,
+					"speed" : 1.2,
+					"color" : "#2626CC"
+				} ]
+			}]
+}

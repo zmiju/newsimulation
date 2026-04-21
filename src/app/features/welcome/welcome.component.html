@@ -1,0 +1,190 @@
+<div class="welcome-container">
+
+  <!-- About the simulator (always visible on /welcome) -->
+  <div class="row justify-content-center mb-5">
+    <div class="col-lg-9">
+      <h2 class="mb-3" style="font-size:26px;">
+        Witaj w symulatorze projektów Octigo — Welcome to the Octigo project simulator
+      </h2>
+
+      <!-- Goal -->
+      <h5 class="mt-4 mb-2" style="font-size:17px;">Cel symulatora — Goal of the simulator</h5>
+      <p class="text-secondary" style="font-size:15px; line-height:1.7;">
+        Symulator pozwala w bezpiecznym środowisku wcielić się w rolę kierownika projektu:
+        zaplanować zadania, dobrać zespół, zarządzać ryzykami i doprowadzić projekt do
+        końca w ramach czasu i budżetu. Uczy praktycznego podejścia do zarządzania
+        projektami oraz metody Earned Value (PV, EV, AC, SPI, CPI) na żywych,
+        zmieniających się scenariuszach.
+      </p>
+      <p class="text-secondary" style="font-size:15px; line-height:1.7;">
+        The simulator lets you step into the role of a project manager in a safe
+        environment: plan tasks, assign the team, handle risks and deliver the project
+        on time and on budget. It teaches a practical approach to project management
+        and the Earned Value method (PV, EV, AC, SPI, CPI) through live, evolving
+        scenarios.
+      </p>
+
+      <!-- Features -->
+      <h5 class="mt-4 mb-2" style="font-size:17px;">Funkcje — Features</h5>
+      <ul class="text-secondary" style="font-size:15px; line-height:1.7;">
+        <li>
+          <strong>Planowanie projektu — Project planning:</strong>
+          ustalanie dat startu i końca zadań, pracochłonności oraz przypisywanie
+          zasobów do zadań.
+          <em>Set task start/end dates, effort, and assign resources.</em>
+        </li>
+        <li>
+          <strong>Zarządzanie ryzykiem — Risk management:</strong>
+          wykup przeciwdziałań dopasowanych do projektu, aby zniwelować skutki
+          losowych zdarzeń w trakcie realizacji.
+          <em>Purchase counteractions to mitigate random risk events during execution.</em>
+        </li>
+        <li>
+          <strong>Realizacja w czasie rzeczywistym — Real-time execution:</strong>
+          uruchom symulację, obserwuj wykres Gantta i postęp zadań, reaguj na
+          przeciążenia zasobów (multitasking) oraz efekty crashingu.
+          <em>Run the simulation, watch the Gantt and task progress, and react to resource overloads (multitasking) and crashing effects.</em>
+        </li>
+        <li>
+          <strong>Metryki Earned Value — Earned Value metrics:</strong>
+          śledź na żywym wykresie PV / EV / AC oraz wskaźniki SPI i CPI, aby
+          ocenić czy projekt jest przed czy za harmonogramem i budżetem.
+          <em>Track PV / EV / AC on a live chart, with SPI and CPI indicators for schedule and cost performance.</em>
+        </li>
+        <li>
+          <strong>Podsumowanie i ocena — Summary &amp; scoring:</strong>
+          po zakończeniu zobacz zrealizowany zakres, rzeczywisty koszt, termin
+          i wynik punktowy.
+          <em>At the end see delivered scope, actual cost, finish date and a score.</em>
+        </li>
+        <li>
+          <strong>Ranking — Leaderboard:</strong>
+          porównaj swoje wyniki w trybie turniejowym z wynikami innych graczy.
+          <em>Compare your tournament results against other players.</em>
+        </li>
+        <li>
+          <strong>Wiele trybów — Multiple modes:</strong>
+          lekcje ze studium przypadku, turnieje na wspólnych scenariuszach oraz
+          tryb losowy w trzech poziomach trudności.
+          <em>Lessons with a case study, tournaments on shared scenarios, and random mode with three difficulty levels.</em>
+        </li>
+      </ul>
+
+      <!-- Modes -->
+      <h5 class="mt-4 mb-2" style="font-size:17px;">Tryby rozgrywki — Game modes</h5>
+      <p class="text-secondary" style="font-size:15px; line-height:1.7;">
+        Poniżej możesz wybrać jeden z trzech trybów rozgrywki. W trybie
+        lekcji możesz rozpocząć od zapoznania się ze studium przypadku
+        projektu, a następnie go zaplanować i zrealizować. W trybie turnieju
+        możesz wybrać jeden z już zaplanowanych projektów i go zrealizować, a
+        następnie porównać swoje wyniki do innych w rankingu. W trybie
+        losowym symulator wygeneruje ci losowy projekt na jednym z trzech
+        poziomów trudności, który będziesz musiał poprowadzić.
+      </p>
+      <p class="text-secondary" style="font-size:15px; line-height:1.7; margin-bottom:0;">
+        Below you can select one of three game modes. In lesson mode you can
+        start your lesson with a case study, then plan and implement it. In
+        tournament mode you can choose one of the already planned projects
+        and implement it, and then compare your results to others in the
+        ranking. In a random project mode, the simulator will generate a
+        random project for you on one of the three difficulty levels.
+      </p>
+    </div>
+  </div>
+
+  <!-- Sign-in card (shown until the user signs in) -->
+  @if (showSignIn()) {
+    <div class="row justify-content-center">
+      <div class="col-md-5 col-lg-4">
+        <div class="card signin-card">
+          <div class="card-header">
+            <h3>{{ 'SIGN_IN_modal_title' | translate }}</h3>
+          </div>
+          <div class="card-body">
+            <app-alert [error]="(signInError() | translate) || ''" />
+
+            <form (submit)="submit(); $event.preventDefault()">
+              <div class="mb-3">
+                <label class="form-label">
+                  {{ 'SIGN_IN_modal_email' | translate }}
+                  <span class="text-secondary">({{ 'SIGN_IN_modal_optional' | translate }})</span>
+                </label>
+                <input class="form-control" type="email" [(ngModel)]="form.email" name="email">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">{{ 'SIGN_IN_modal_nick' | translate }}</label>
+                <input class="form-control" type="text" [(ngModel)]="form.nick" name="nick">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">{{ 'SIGN_IN_modal_function' | translate }}</label>
+                <select class="form-select" [(ngModel)]="form.function" name="function">
+                  @for (f of functions; track f) {
+                    <option [ngValue]="f">{{ functionI18nKey(f) | translate }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox"
+                       [(ngModel)]="form.termsAccepted" name="terms" id="terms">
+                <label class="form-check-label" for="terms">
+                  {{ 'SIGN_IN_modal_terms' | translate }}
+                </label>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                {{ 'SIGN_IN_modal_ok' | translate }}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Mode picker (once signed in) -->
+  @if (!showSignIn()) {
+    <div class="row g-4">
+      <!-- Lessons -->
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-header">{{ 'MAIN_trainings' | translate }}</div>
+          <div class="card-body">
+            <ul>
+              @for (s of lessons(); track s.id) {
+                <li><a [routerLink]="['/game', s.id, 'plan']">{{ s.name }}</a></li>
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tournaments -->
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-header">{{ 'MAIN_projects' | translate }}</div>
+          <div class="card-body">
+            <ul>
+              @for (s of tournaments(); track s.id) {
+                <li><a [routerLink]="['/game', s.id, 'play']">{{ s.name }}</a></li>
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Random -->
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-header">{{ 'MAIN_random' | translate }}</div>
+          <div class="card-body">
+            <ul>
+              <li><a [routerLink]="['/game', 'random-easy',   'play']">{{ 'MAIN_random_easy'   | translate }}</a></li>
+              <li><a [routerLink]="['/game', 'random-medium', 'play']">{{ 'MAIN_random_medium' | translate }}</a></li>
+              <li><a [routerLink]="['/game', 'random-hard',   'play']">{{ 'MAIN_random_hard'   | translate }}</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

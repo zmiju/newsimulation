@@ -1,0 +1,132 @@
+@if (scenario; as s) {
+  <div class="plan-view">
+    <h3>{{ 'PLAN_title' | translate }}</h3>
+
+    <form class="row g-3">
+
+      <!-- Resources list -->
+      <div class="mb-3">
+        <label class="form-label fw-bold">{{ 'PLAN_resources' | translate }}</label>
+        <div class="d-flex flex-wrap gap-2 mt-1">
+          @for (r of s.resources; track r.id) {
+            <div class="badge bg-light text-dark border" style="font-size:13px; font-weight:400; padding:6px 12px;">
+              <strong>{{ r.name }}</strong>
+              &mdash;
+              @if (r.speed > 1) { {{ 'speed_fast'   | translate }} }
+              @else if (r.speed < 1) { {{ 'speed_slow'   | translate }} }
+              @else                  { {{ 'speed_normal' | translate }} },
+              @if (r.cost > 1) { {{ 'cost_expensive' | translate }} }
+              @else if (r.cost < 1) { {{ 'cost_cheap'     | translate }} }
+              @else                 { {{ 'cost_normal'    | translate }} }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Counter-risks -->
+      @if (s.counterRisks?.length) {
+        <div class="mb-3">
+          <label class="form-label fw-bold">{{ 'PLAN_counterrisks' | translate }}</label>
+          <div class="mt-1">
+            @for (cr of s.counterRisks; track cr.id) {
+              <div class="form-check mb-1">
+                <input class="form-check-input" type="checkbox"
+                       [checked]="isCounterRiskSelected(cr.id)"
+                       (change)="toggleCounterRisk(cr.id)">
+                <label class="form-check-label" style="font-size:14px;">
+                  {{ cr.name }} &mdash; <span class="text-muted">{{ cr.cost }}{{ 'MAIN_currency' | translate }}</span>
+                </label>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Tasks -->
+      @for (task of s.plan?.tasks; track task.id; let idx = $index) {
+        <div class="plan-task-card">
+          <label class="fw-bold">
+            {{ 'MAIN_task' | translate }} {{ task.id + 1 }}
+          </label>
+          <div class="plan-task-row">
+            <div class="caption">{{ 'PLAN_start' | translate }}</div>
+            <div class="inputs">
+              <div class="input-group input-group-sm">
+                <input type="number" class="form-control"
+                       [ngModel]="toDays(task.start)"
+                       (ngModelChange)="updateTaskStart(idx, $event)"
+                       [ngModelOptions]="{ standalone: true }">
+                <span class="input-group-text">{{ 'PLAN_day' | translate }}</span>
+              </div>
+            </div>
+
+            <div class="caption">{{ 'PLAN_end' | translate }}</div>
+            <div class="inputs">
+              <div class="input-group input-group-sm">
+                <input type="number" class="form-control"
+                       [ngModel]="toDays($any(task)['end'] ?? 0)"
+                       (ngModelChange)="updateTaskEnd(idx, $event)"
+                       [ngModelOptions]="{ standalone: true }">
+                <span class="input-group-text">{{ 'PLAN_day' | translate }}</span>
+              </div>
+            </div>
+
+            <div class="caption">{{ 'PLAN_task_effort' | translate }}</div>
+            <div class="inputs">
+              <div class="input-group input-group-sm">
+                <input type="number" class="form-control"
+                       [ngModel]="toDays(task.effort)"
+                       (ngModelChange)="updateTaskEffort(idx, $event)"
+                       [ngModelOptions]="{ standalone: true }">
+                <span class="input-group-text">{{ 'MAIN_mandays' | translate }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Budget / Deadline / Contract -->
+      <div class="row g-3 mb-2">
+        <div class="col-auto">
+          <label class="form-label">{{ 'PLAN_budget' | translate }}</label>
+          <div class="input-group input-group-sm" style="width: 200px;">
+            <input class="form-control" type="text" [value]="totalPlannedBudget()" disabled>
+            <span class="input-group-text">{{ 'MAIN_currency' | translate }}</span>
+          </div>
+        </div>
+
+        <div class="col-auto">
+          <label class="form-label">{{ 'PLAN_deadline' | translate }}</label>
+          <div class="input-group input-group-sm" style="width: 160px;">
+            <input class="form-control" type="text" [value]="s.plan?.deadline" disabled>
+            <span class="input-group-text">{{ 'PLAN_week' | translate }}</span>
+          </div>
+        </div>
+
+        <div class="col-auto">
+          <label class="form-label">{{ 'PLAN_contract' | translate }}</label>
+          <div class="input-group input-group-sm" style="width: 200px;">
+            <input class="form-control" type="number"
+                   [(ngModel)]="$any(s.plan).contract"
+                   [ngModelOptions]="{ standalone: true }">
+            <span class="input-group-text">{{ 'MAIN_currency' | translate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="mb-3">
+        @if (!isSaved()) {
+          <button type="button" class="btn btn-outline-primary" (click)="save()">
+            {{ 'PLAN_save' | translate }}
+          </button>
+        } @else {
+          <button type="button" class="btn btn-primary" (click)="goToSimulation()">
+            {{ 'PLAN_goNext' | translate }}
+          </button>
+        }
+      </div>
+
+    </form>
+  </div>
+}
