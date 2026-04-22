@@ -8,6 +8,7 @@ import {
   ScenarioBundle,
 } from '../models/scenario.model';
 import { Risk, CounterRisk } from '../models/risk.model';
+import { Dependency, DependencyType, Task } from '../models/task.model';
 
 /**
  * Loads scenarios (plus risk catalog) from scenario.json once, caches the result,
@@ -71,6 +72,7 @@ export class ScenarioService {
         : (r as Scenario);
       scenario.id = i;
       if (scenario.tasks)         this.applyIds(scenario.tasks);
+      if (scenario.tasks)         this.normalizeDependencies(scenario.tasks);
       if (scenario.resources)     this.applyIds(scenario.resources);
       if (scenario.counterRisks)  this.applyIds(scenario.counterRisks);
       return scenario;
@@ -80,6 +82,18 @@ export class ScenarioService {
   private applyIds<T extends { id?: number }>(items: T[]): T[] {
     items.forEach((item, i) => (item.id = i));
     return items;
+  }
+
+  /** Convert any legacy `number[]` dependency entries to `Dependency` objects. */
+  private normalizeDependencies(tasks: Task[]): void {
+    tasks.forEach((task) => {
+      task.dependants = (task.dependants as unknown as Array<number | Dependency>).map(
+        (d): Dependency => typeof d === 'number' ? { id: d, type: 'FS' } : d,
+      );
+      task.dependsOn = (task.dependsOn as unknown as Array<number | Dependency>).map(
+        (d): Dependency => typeof d === 'number' ? { id: d, type: 'FS' } : d,
+      );
+    });
   }
 
   private looksLegacy(obj: unknown): obj is LegacyScenario {
@@ -102,25 +116,27 @@ export class ScenarioService {
     };
 
     scenario.Zadanie.forEach((zad) => {
-      const task = {
+      const task: Task = {
         id: -1,
         start:  zad.I[1] / 50,
         effort: zad.I[2] / 50 - zad.I[1] / 50,
-        dependants: [] as number[],
-        dependsOn:  [] as number[],
+        dependants: [],
+        dependsOn:  [],
       };
-      if (zad.I[3] !== undefined && zad.I[3] !== null) task.dependants.push(zad.I[3]);
+      if (zad.I[3] !== undefined && zad.I[3] !== null) {
+        task.dependants.push({ id: zad.I[3], type: 'FS' });
+      }
       newScenario.tasks.push(task);
     });
 
     // Back-link dependencies (dependants -> dependsOn)
     newScenario.tasks.forEach((task, i) => {
-      task.dependants.forEach((targetIdx) => {
-        if (targetIdx > newScenario.tasks.length - 1) {
+      task.dependants.forEach((dep) => {
+        if (dep.id > newScenario.tasks.length - 1) {
           task.dependants = [];
           return;
         }
-        newScenario.tasks[targetIdx].dependsOn.push(i);
+        newScenario.tasks[dep.id].dependsOn.push({ id: i, type: 'FS' });
       });
     });
 

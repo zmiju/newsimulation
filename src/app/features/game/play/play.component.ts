@@ -254,13 +254,24 @@ export class PlayComponent {
   play(): void  { this.sym.play(); }
   pause(): void { this.sym.pause(); }
 
+  showResetConfirm = false;
+
   reset(): void {
     if (this.sym.isStartedNotCompleted()) {
       this.sym.pause();
-      if (confirm('Reset the simulation?')) this.sym.reset();
+      this.showResetConfirm = true;
     } else {
       this.sym.reset();
     }
+  }
+
+  confirmReset(): void {
+    this.showResetConfirm = false;
+    this.sym.reset();
+  }
+
+  cancelReset(): void {
+    this.showResetConfirm = false;
   }
 
   private wasPlayingBeforeRisk = false;

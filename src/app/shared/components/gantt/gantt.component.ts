@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation, computed, inject } from '@angular/core';
+import { Component, HostListener, Input, ViewEncapsulation, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
@@ -8,6 +8,7 @@ import { ConfigService } from '@core/services/config.service';
 import { SymulatorService } from '@core/services/symulator.service';
 import { Scenario } from '@core/models/scenario.model';
 import { Resource } from '@core/models/resource.model';
+import { DependencyType } from '@core/models/task.model';
 
 @Component({
   selector: 'app-gantt',
@@ -127,6 +128,21 @@ import { Resource } from '@core/models/resource.model';
       stroke-linejoin: round;
       opacity: 0.8;
       pointer-events: none;
+      transition: stroke-width 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
+    }
+    .gantt-dep-hit {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 12;
+      cursor: pointer;
+      /* pointer-events: all fires even on a transparent/invisible stroke */
+      pointer-events: all;
+    }
+    /* Highlight the visible path whenever the sibling hit-area (or the group) is hovered */
+    .gantt-dep-group:hover .gantt-dep-path {
+      stroke-width: 3;
+      opacity: 1;
+      filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.35));
     }
 
     .gantt-crash-alert {
@@ -154,17 +170,6 @@ import { Resource } from '@core/models/resource.model';
                [attr.height]="chartHeight()"
                xmlns="http://www.w3.org/2000/svg"
                style="display:block;">
-
-            <defs>
-              <marker id="gantt-dep-arrow"
-                      viewBox="0 0 10 10"
-                      refX="9" refY="5"
-                      markerUnits="userSpaceOnUse"
-                      markerWidth="8" markerHeight="8"
-                      orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#607d8b" />
-              </marker>
-            </defs>
 
             <!-- Week grid -->
             @for (w of weeks(); track w) {
@@ -307,13 +312,6 @@ import { Resource } from '@core/models/resource.model';
               }
             </g>
 
-            <!-- Dependency arrows (FS) -->
-            @for (dep of dependencyPaths(); track dep.key) {
-              <path class="gantt-dep-path"
-                    [attr.d]="dep.d"
-                    marker-end="url(#gantt-dep-arrow)" />
-            }
-
             <!-- "Now" line -->
             <line class="gantt-now-line gantt-now-line-pulse"
                   [attr.x1]="labelWidth + sim.time * weekPx"
@@ -329,13 +327,63 @@ import { Resource } from '@core/models/resource.model';
                  cdkDropList
                  [cdkDropListData]="task.resourcesAssigned"
                  (cdkDropListDropped)="onDrop($event, task.id)"
-                 (cdkDropListEntered)="hoveredTaskId = task.id"
+                 (cdkDropListEntered)="hoveredTaskId = task.id; isDragging = true"
                  (cdkDropListExited)="hoveredTaskId = null"
                  [style.top.px]="headerHeight + i * rowHeight"
                  [style.height.px]="rowHeight - chipH - 4">
               <div class="task-drop-zone"></div>
             </div>
           }
+
+          <!--
+            Arrow overlay — rendered AFTER the task-overlay divs so it sits
+            above them in z-order (both are position:absolute within the same
+            stacking context; later in DOM = higher stack).
+            The SVG itself has pointer-events:none so it never blocks drag-drop.
+            Individual hit paths override that with pointer-events:all.
+          -->
+          <svg class="gantt-dep-overlay"
+               [attr.width]="chartWidth()"
+               [attr.height]="chartHeight()"
+               style="position:absolute;top:0;left:0;overflow:visible;pointer-events:none;">
+
+            <defs>
+              <marker id="gantt-dep-arrow"
+                      viewBox="0 0 10 10" refX="9" refY="5"
+                      markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8"
+                      orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#607d8b" />
+              </marker>
+              <marker id="gantt-dep-arrow-ss"
+                      viewBox="0 0 10 10" refX="9" refY="5"
+                      markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8"
+                      orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#1976d2" />
+              </marker>
+              <marker id="gantt-dep-arrow-ff"
+                      viewBox="0 0 10 10" refX="9" refY="5"
+                      markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8"
+                      orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#f57c00" />
+              </marker>
+            </defs>
+
+            @for (dep of depPaths(); track dep.key) {
+              <g class="gantt-dep-group">
+                <!-- 12 px transparent hit area; pointer-events:all overrides SVG none -->
+                <path class="gantt-dep-hit"
+                      [attr.d]="dep.d"
+                      [style.pointer-events]="isDragging ? 'none' : 'all'"
+                      (mouseenter)="hoveredDepKey.set(dep.key)"
+                      (mouseleave)="hoveredDepKey.set(null)" />
+                <path class="gantt-dep-path"
+                      [class.gantt-dep-path--hovered]="hoveredDepKey() === dep.key"
+                      [attr.d]="dep.d"
+                      [attr.stroke]="dep.type === 'SS' ? '#1976d2' : dep.type === 'FF' ? '#f57c00' : '#607d8b'"
+                      [attr.marker-end]="dep.type === 'SS' ? 'url(#gantt-dep-arrow-ss)' : dep.type === 'FF' ? 'url(#gantt-dep-arrow-ff)' : 'url(#gantt-dep-arrow)'" />
+              </g>
+            }
+          </svg>
         </div>
       }
     }
@@ -348,6 +396,15 @@ export class GanttComponent {
   @Input({ required: true }) scenario!: Scenario;
 
   hoveredTaskId: number | null = null;
+  isDragging = false;
+  readonly hoveredDepKey = signal<string | null>(null);
+
+  @HostListener('document:pointerup')
+  onPointerUp(): void {
+    this.isDragging = false;
+    this.hoveredDepKey.set(null);
+  }
+  readonly depPaths = computed(() => this.buildDepPaths());
 
   readonly labelWidth   = 40;
   readonly headerHeight = 24;
@@ -374,11 +431,12 @@ export class GanttComponent {
   }
 
   /**
-   * Build SVG paths for finish-to-start dependency arrows between planned bars.
-   * Uses planned `start` / `effort` so arrows track the user's plan, not the
-   * (drifting) actual bars.
+   * Build SVG paths for dependency arrows between planned bars.
+   * FS (gray)  — predecessor end   → successor start  (enter from left)
+   * SS (blue)  — predecessor start → successor start  (enter from left, exit left)
+   * FF (orange)— predecessor end   → successor end    (enter from right, exit right)
    */
-  dependencyPaths(): { key: string; d: string }[] {
+  private buildDepPaths(): { key: string; d: string; type: DependencyType }[] {
     const sim = this.sym.simulation();
     const plan = this.scenario?.plan;
     const defs = this.scenario?.tasks;
@@ -387,43 +445,48 @@ export class GanttComponent {
     const rowOf = new Map<number, number>();
     sim.tasks.forEach((t, i) => rowOf.set(t.id, i));
 
-    // Vertical center of the planned bar (y=6, height=8) inside a row.
-    const barCenterY = 10;
-    const headTrim = 6;     // gap so arrowhead doesn't overlap the bar
-    const tailLen = 14;     // length of straight horizontal approach into arrowhead
-    const exitLen = 10;     // length of straight horizontal exit from predecessor
-    const r = 6;            // corner radius for rounded bends
+    const barCenterY = 10;   // vertical center of the planned bar (y=6, h=8)
+    const headTrim   = 6;    // gap so arrowhead doesn't overlap the bar edge
+    const tailLen    = 14;   // horizontal approach stub length
+    const exitLen    = 10;   // horizontal exit stub length
+    const r          = 6;    // corner radius
 
-    const paths: { key: string; d: string }[] = [];
+    const paths: { key: string; d: string; type: DependencyType }[] = [];
 
     for (const task of sim.tasks) {
-      const def = defs.find(t => t.id === task.id);
+      const def  = defs.find(t => t.id === task.id);
       const deps = def?.dependsOn ?? [];
       if (deps.length === 0) continue;
 
-      const suc = plan.tasks?.[task.id];
+      const suc    = plan.tasks?.[task.id];
       const sucIdx = rowOf.get(task.id);
       if (!suc || sucIdx == null) continue;
 
       const sucStartX = this.labelWidth + suc.start * this.weekPx;
-      const sucY = this.headerHeight + sucIdx * this.rowHeight + barCenterY;
+      const sucEndX   = this.labelWidth + (suc.start + suc.effort) * this.weekPx;
+      const sucY      = this.headerHeight + sucIdx * this.rowHeight + barCenterY;
 
-      for (const predId of deps) {
-        const pred = plan.tasks?.[predId];
-        const predIdx = rowOf.get(predId);
+      for (const dep of deps) {
+        const pred    = plan.tasks?.[dep.id];
+        const predIdx = rowOf.get(dep.id);
         if (!pred || predIdx == null) continue;
 
-        const predEndX = this.labelWidth + (pred.start + pred.effort) * this.weekPx;
-        const predY = this.headerHeight + predIdx * this.rowHeight + barCenterY;
-        const targetX = sucStartX - headTrim;
+        const predStartX = this.labelWidth + pred.start * this.weekPx;
+        const predEndX   = this.labelWidth + (pred.start + pred.effort) * this.weekPx;
+        const predY      = this.headerHeight + predIdx * this.rowHeight + barCenterY;
+        const dir: -1 | 0 | 1 = sucIdx > predIdx ? 1 : sucIdx < predIdx ? -1 : 0;
+        const opts = { tailLen, exitLen, r, rowHeight: this.rowHeight };
 
-        const d = this.buildDepPath(
-          predEndX, predY, targetX, sucY,
-          sucIdx > predIdx ? 1 : sucIdx < predIdx ? -1 : 0,
-          { tailLen, exitLen, r, rowHeight: this.rowHeight },
-        );
+        let d: string;
+        if (dep.type === 'SS') {
+          d = this.buildSSPath(predStartX, predY, sucStartX - headTrim, sucY, dir, opts);
+        } else if (dep.type === 'FF') {
+          d = this.buildFFPath(predEndX, predY, sucEndX + headTrim, sucY, dir, opts);
+        } else {
+          d = this.buildDepPath(predEndX, predY, sucStartX - headTrim, sucY, dir, opts);
+        }
 
-        paths.push({ key: `${predId}->${task.id}`, d });
+        paths.push({ key: `${dep.id}->${task.id}-${dep.type}`, d, type: dep.type });
       }
     }
 
@@ -505,6 +568,80 @@ export class GanttComponent {
       `V ${ty - d2 * r} ` +
       // d2 -> R
       `Q ${backX} ${ty}, ${backX + r} ${ty} ` +
+      `H ${tx}`
+    );
+  }
+
+  /**
+   * SS path: exit LEFT from predecessor start, travel vertically, enter RIGHT at
+   * successor start.  `tx` should already include the headTrim offset.
+   */
+  private buildSSPath(
+    sx: number, sy: number,
+    tx: number, ty: number,
+    dir: -1 | 0 | 1,
+    o: { exitLen: number; r: number; rowHeight: number },
+  ): string {
+    const { exitLen, r } = o;
+
+    if (dir === 0 || Math.abs(ty - sy) < 1) {
+      return `M ${sx} ${sy} H ${tx}`;
+    }
+
+    // Exit to the left of both bar starts so the arrow never overlaps bar bodies.
+    const laneX  = Math.min(sx, tx) - exitLen;
+    const turn1Y = sy + dir * r;
+    const turn2Y = ty - dir * r;
+
+    if ((dir === 1 && turn2Y < turn1Y) || (dir === -1 && turn2Y > turn1Y)) {
+      return `M ${sx} ${sy} H ${laneX} L ${tx} ${ty}`;
+    }
+
+    return (
+      `M ${sx} ${sy} ` +
+      `H ${laneX + r} ` +
+      `Q ${laneX} ${sy}, ${laneX} ${turn1Y} ` +
+      `V ${turn2Y} ` +
+      `Q ${laneX} ${ty}, ${laneX + r} ${ty} ` +
+      `H ${tx}`
+    );
+  }
+
+  /**
+   * FF path: exit RIGHT from predecessor end, travel vertically, enter LEFT at
+   * successor end.  The last segment goes rightward → leftward so `marker-end`
+   * auto-orients the arrowhead to point left (into the bar's right edge).
+   * `tx` should already include the headTrim offset (i.e. sucEndX + headTrim).
+   */
+  private buildFFPath(
+    sx: number, sy: number,
+    tx: number, ty: number,
+    dir: -1 | 0 | 1,
+    o: { exitLen: number; r: number; rowHeight: number },
+  ): string {
+    const { exitLen, r } = o;
+
+    if (dir === 0 || Math.abs(ty - sy) < 1) {
+      // Same row: go right past both ends, then come back left.
+      const laneX = Math.max(sx, tx) + exitLen;
+      return `M ${sx} ${sy} H ${laneX} V ${ty} H ${tx}`;
+    }
+
+    // Stay to the right of both bar ends so the arrow never overlaps bar bodies.
+    const laneX  = Math.max(sx, tx) + exitLen;
+    const turn1Y = sy + dir * r;
+    const turn2Y = ty - dir * r;
+
+    if ((dir === 1 && turn2Y < turn1Y) || (dir === -1 && turn2Y > turn1Y)) {
+      return `M ${sx} ${sy} H ${laneX} L ${tx} ${ty}`;
+    }
+
+    return (
+      `M ${sx} ${sy} ` +
+      `H ${laneX - r} ` +
+      `Q ${laneX} ${sy}, ${laneX} ${turn1Y} ` +
+      `V ${turn2Y} ` +
+      `Q ${laneX} ${ty}, ${laneX - r} ${ty} ` +
       `H ${tx}`
     );
   }

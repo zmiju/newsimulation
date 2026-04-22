@@ -141,6 +141,28 @@
 
     </div>
 
+    <!-- Reset confirmation modal -->
+    @if (showResetConfirm) {
+      <div class="risk-popup-backdrop" (click)="cancelReset()" @riskBackdrop></div>
+      <div class="risk-popup" role="dialog" aria-modal="true" @riskPopup>
+        <div class="risk-popup__header" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-bottom-color: #fde68a;">
+          <span class="risk-popup__icon" style="color: #92400e;">&#9888;</span>
+          <h5 style="color: #92400e;">{{ 'SIMULATION_reset' | translate }}</h5>
+        </div>
+        <div class="risk-popup__body">
+          <p>{{ 'SIMULATION_reset_confirm' | translate }}</p>
+        </div>
+        <div class="risk-popup__footer" style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button class="btn btn-outline-secondary btn-sm btn-animated" (click)="cancelReset()">
+            {{ 'CONFIRMATION_cancel' | translate }}
+          </button>
+          <button class="btn btn-warning btn-sm btn-animated" (click)="confirmReset()">
+            {{ 'SIMULATION_reset' | translate }}
+          </button>
+        </div>
+      </div>
+    }
+
     <!-- Risk popup (inline modal). Pauses simulation while open, applies impact on close. -->
     @if (pendingRisk; as risk) {
       <div class="risk-popup-backdrop" (click)="closeRiskPopup()" @riskBackdrop></div>

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { ConfigService, GeneratorLevel } from './config.service';
 import { Scenario } from '../models/scenario.model';
 import { Task } from '../models/task.model';
+import { Dependency, DependencyType } from '../models/task.model';
 import { Resource } from '../models/resource.model';
 
 /**
@@ -49,9 +50,12 @@ export class ScenarioGeneratorService {
 
       if (this.areTasksMakingCycle(scenario.tasks, master, slave)) { i--; continue; }
 
-      this.fixStartTime(scenario, master, slave);
-      master.dependants.push(slave.id);
-      slave.dependsOn.push(master.id);
+      // ~50% FS, ~25% SS, ~25% FF
+      const depType = this.randomDepType();
+
+      this.fixStartTime(scenario, master, slave, depType);
+      master.dependants.push({ id: slave.id, type: depType });
+      slave.dependsOn.push({ id: master.id, type: depType });
     }
 
     // Resources ------------------------------------------------------------
@@ -73,12 +77,31 @@ export class ScenarioGeneratorService {
 
   // ── Helpers ─────────────────────────────────────────────────────────────
 
-  private fixStartTime(scenario: Scenario, master: Task, slave: Task): void {
-    if (slave.start < master.start + master.effort) {
-      slave.start = master.start + master.effort;
-      slave.dependants.forEach((id) => {
-        this.fixStartTime(scenario, slave, scenario.tasks[id]);
-      });
+  private fixStartTime(scenario: Scenario, master: Task, slave: Task, depType: DependencyType): void {
+    if (depType === 'FS') {
+      if (slave.start < master.start + master.effort) {
+        slave.start = master.start + master.effort;
+        slave.dependants.forEach((dep) => {
+          this.fixStartTime(scenario, slave, scenario.tasks[dep.id], dep.type);
+        });
+      }
+    } else if (depType === 'SS') {
+      if (slave.start < master.start) {
+        slave.start = master.start;
+        slave.dependants.forEach((dep) => {
+          this.fixStartTime(scenario, slave, scenario.tasks[dep.id], dep.type);
+        });
+      }
+    } else {
+      // FF: slave.end >= master.end
+      const masterEnd = master.start + master.effort;
+      const slaveEnd  = slave.start + slave.effort;
+      if (slaveEnd < masterEnd) {
+        slave.start += masterEnd - slaveEnd;
+        slave.dependants.forEach((dep) => {
+          this.fixStartTime(scenario, slave, scenario.tasks[dep.id], dep.type);
+        });
+      }
     }
   }
 
@@ -103,15 +126,22 @@ export class ScenarioGeneratorService {
   }
 
   private areTasksAlreadyDependent(t1: Task, t2: Task): boolean {
-    return t1.dependants.includes(t2.id) || t2.dependants.includes(t1.id);
+    return t1.dependants.some((d) => d.id === t2.id) || t2.dependants.some((d) => d.id === t1.id);
   }
 
   private areTasksMakingCycle(all: Task[], t1: Task, t2: Task): boolean {
-    for (const dependantId of t1.dependants) {
-      if (dependantId === t2.id) return true;
-      if (this.areTasksMakingCycle(all, all[dependantId], t2)) return true;
+    for (const dep of t1.dependants) {
+      if (dep.id === t2.id) return true;
+      if (this.areTasksMakingCycle(all, all[dep.id], t2)) return true;
     }
     return false;
+  }
+
+  private randomDepType(): DependencyType {
+    const r = Math.random();
+    if (r < 0.5) return 'FS';
+    if (r < 0.75) return 'SS';
+    return 'FF';
   }
 
   private randomSpeed(): number {

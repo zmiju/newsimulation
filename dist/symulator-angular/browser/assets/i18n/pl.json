@@ -114,6 +114,7 @@
   "SIMULATION_pause": "Stop",
   "SIMULATION_quit": "Zakończ symulację",
   "SIMULATION_reset": "Zacznij od nowa",
+  "SIMULATION_reset_confirm": "Cały postęp zostanie utracony. Czy na pewno chcesz zacząć od nowa?",
   "SIMULATION_risk": "RYZYKO",
   "SIMULATION_generate_new_random": "Wylosuj inny projekt",
   "SIMULATION_params": "Parametry",

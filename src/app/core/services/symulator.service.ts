@@ -504,6 +504,8 @@ export class SymulatorService {
     let resourcesCount = task.resourcesAssigned.length;
     if (task.isCompleted) return;
     if (task.start > sim.time) return;
+    // SS constraint: block this task until every SS predecessor has started.
+    if (this.isBlockedBySSPredecessor(task, sim)) return;
 
     task.change = 0;
     task.resourcesAssigned.forEach((resource) => {
@@ -555,31 +557,80 @@ export class SymulatorService {
     if (change > 0) this.moveTaskForward(task, change);
   }
 
+  /**
+   * Returns true if any SS predecessor of this task hasn't actually started yet.
+   * "Started" means the predecessor has made real progress (completed > 0), not
+   * merely that its scheduled start time has been reached.  A task sitting at its
+   * start time with no resources has completed === 0 and is not considered started.
+   */
+  private isBlockedBySSPredecessor(task: SimTask, sim: SimulationState): boolean {
+    const scenario = this._scenario()!;
+    const taskDef = scenario.tasks[task.id];
+    return taskDef.dependsOn.some((dep) => {
+      if (dep.type !== 'SS') return false;
+      const pred = sim.tasks[dep.id];
+      return pred.completed === 0;
+    });
+  }
+
   private moveTaskForward(task: SimTask, change: number): void {
     task.start += change;
     task.end   += change;
-    this.moveSubTasksForward(task, change);
+    this.moveSubTasksForward(task, change, true);
   }
 
   private addEffortToTask(task: SimTask, change: number): void {
     task.effort += change;
     task.end    += change;
-    this.moveSubTasksForward(task, change);
+    this.moveSubTasksForward(task, change, false);
   }
 
-  private moveSubTasksForward(task: SimTask, change: number): void {
+  /**
+   * Propagate a schedule change to all direct successors, respecting the
+   * dependency type of each link:
+   *
+   *  FS — successor.start  ≥ predecessor.end   (original logic)
+   *  SS — successor.start  ≥ predecessor.start  (only when start changed)
+   *  FF — successor.end    ≥ predecessor.end    (push via addEffortToTask)
+   */
+  private moveSubTasksForward(task: SimTask, change: number, startChanged: boolean): void {
     const scenario = this._scenario()!;
     const sim = scenario.symulation as unknown as SimulationState;
     const taskDef = scenario.tasks[task.id];
-    taskDef.dependants.forEach((subId) => {
-      const sub = sim.tasks[subId];
-      const subchange = sub.start - task.end;
-      if (Math.round(change * 10000) === -Math.round(subchange * 10000)) {
-        this.moveTaskForward(sub, change);
-      } else if (subchange > change) {
-        return;
-      } else if (subchange < 0) {
-        this.moveTaskForward(sub, -subchange);
+
+    taskDef.dependants.forEach((dep) => {
+      const sub = sim.tasks[dep.id];
+
+      if (dep.type === 'SS') {
+        // SS: only fires when the predecessor's START moved
+        if (!startChanged) return;
+        const gap = sub.start - task.start;
+        if (gap < 0) this.moveTaskForward(sub, -gap);
+
+      } else if (dep.type === 'FF') {
+        // FF: successor.end must be ≥ predecessor.end
+        if (sub.isCompleted) return;
+        const gap = sub.end - task.end;
+        if (gap < 0) {
+          if (sub.start <= sim.time) {
+            // Already running — stretch the end without moving the start.
+            this.addEffortToTask(sub, -gap);
+          } else {
+            // Not yet started — shift the whole task so the end aligns.
+            this.moveTaskForward(sub, -gap);
+          }
+        }
+
+      } else {
+        // FS (default): successor start must be ≥ predecessor end
+        const subchange = sub.start - task.end;
+        if (Math.round(change * 10000) === -Math.round(subchange * 10000)) {
+          this.moveTaskForward(sub, change);
+        } else if (subchange > change) {
+          return;
+        } else if (subchange < 0) {
+          this.moveTaskForward(sub, -subchange);
+        }
       }
     });
   }
