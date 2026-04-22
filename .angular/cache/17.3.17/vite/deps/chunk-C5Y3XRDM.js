@@ -586,6 +586,13 @@ var decode = function(token) {
     signature
   };
 };
+var issuedAtTime = function(token) {
+  const claims = decode(token).claims;
+  if (typeof claims === "object" && claims.hasOwnProperty("iat")) {
+    return claims["iat"];
+  }
+  return null;
+};
 var isValidFormat = function(token) {
   const decoded = decode(token), claims = decoded.claims;
   return !!claims && typeof claims === "object" && claims.hasOwnProperty("iat");
@@ -2389,6 +2396,7 @@ export {
   ErrorFactory,
   jsonEval,
   stringify,
+  issuedAtTime,
   isValidFormat,
   isAdmin,
   contains,
@@ -2780,4 +2788,4 @@ export {
    * limitations under the License.
    *)
 */
-//# sourceMappingURL=chunk-MHGQATTJ.js.map
+//# sourceMappingURL=chunk-C5Y3XRDM.js.map

@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 import { ConfigService } from './config.service';
 import { ScenarioService } from './scenario.service';
@@ -56,6 +57,7 @@ interface SimulationState {
 interface FiredRisk {
   id?: number;
   name: string;
+  nameEn?: string;
   target: 'resource' | 'task';
   targetId: number | 'random';
   targetEntity?: SimResource | SimTask | undefined;
@@ -90,6 +92,7 @@ export class SymulatorService {
   private readonly generator  = inject(ScenarioGeneratorService);
   private readonly users      = inject(UserService);
   private readonly ranking    = inject(RankingService);
+  private readonly translate  = inject(TranslateService);
 
   // ── Reactive public state ───────────────────────────────────────────────
   private readonly _scenario = signal<Scenario | null>(null);
@@ -776,12 +779,16 @@ export class SymulatorService {
       risk.targetEntity = risk.targetId === 'random'
         ? sim.resources[Math.floor(Math.random() * sim.resources.length)]
         : sim.resources[risk.targetId as number];
-      risk.name = risk.name.replace(/\{resource\}/g, (risk.targetEntity as SimResource).name);
+      const resourceName = (risk.targetEntity as SimResource).name;
+      risk.name = risk.name.replace(/\{resource\}/g, resourceName);
+      if (risk.nameEn) risk.nameEn = risk.nameEn.replace(/\{resource\}/g, resourceName);
 
       if (risk.type === 'gone') {
         risk.amount     = Math.round((Math.random() * (pc.gone.to - pc.gone.from) + pc.gone.from) * 100) / 100;
         risk.amountDays = Math.round((risk.amount * this.config.daysInWeek) * 10) / 10;
-        risk.name = risk.name.replace(/\{amount\}/g, String(risk.amountDays));
+        const days = String(risk.amountDays);
+        risk.name = risk.name.replace(/\{amount\}/g, days);
+        if (risk.nameEn) risk.nameEn = risk.nameEn.replace(/\{amount\}/g, days);
       }
     } else if (risk.target === 'task') {
       let target: SimTask;
@@ -795,9 +802,14 @@ export class SymulatorService {
       risk.targetEntity = target;
       risk.amount     = Math.round((Math.random() * (pc.effort.to - pc.effort.from) + pc.effort.from) * 100) / 100;
       risk.amountDays = Math.round((risk.amount * this.config.daysInWeek) * 10) / 10;
+      const taskNum = String(target.id + 1);
+      const days    = String(risk.amountDays);
       risk.name = risk.name
-        .replace(/\{number\}/g, String(target.id + 1))
-        .replace(/\{amount\}/g, String(risk.amountDays));
+        .replace(/\{number\}/g, taskNum)
+        .replace(/\{amount\}/g, days);
+      if (risk.nameEn) risk.nameEn = risk.nameEn
+        .replace(/\{number\}/g, taskNum)
+        .replace(/\{amount\}/g, days);
     }
 
     risk.canHaveCounter = scenario.type === 'training';
@@ -851,8 +863,19 @@ export class SymulatorService {
     return { kind: 'random' };
   }
 
-  getScenarioName(): string        { return this._scenario()?.name ?? ''; }
-  getScenarioDescription(): string { return this._scenario()?.description ?? ''; }
+  getScenarioName(): string {
+    const s = this._scenario();
+    if (!s) return '';
+    const lang = this.translate.currentLang || this.translate.defaultLang;
+    return (lang === 'en' && s.nameEn) ? s.nameEn : s.name;
+  }
+
+  getScenarioDescription(): string {
+    const s = this._scenario();
+    if (!s) return '';
+    const lang = this.translate.currentLang || this.translate.defaultLang;
+    return (lang === 'en' && s.descriptionEn) ? s.descriptionEn : (s.description ?? '');
+  }
 
   // ── Observable interop (for older consumers) ────────────────────────────
   scenario$(): Observable<Scenario | null> {

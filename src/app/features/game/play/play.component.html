@@ -150,7 +150,7 @@
           <h5>{{ 'GAME_risk_title' | translate }}</h5>
         </div>
         <div class="risk-popup__body">
-          <p><strong>{{ risk.name }}</strong></p>
+          <p><strong>{{ risk | localize }}</strong></p>
           @if (risk.hasCounter) {
             <div class="alert alert-success">
               {{ 'GAME_risk_counter' | translate }}

@@ -48,6 +48,7 @@ export class GameComponent implements OnInit, OnDestroy {
   title = '';
   description = '';
   private paramSub?: Subscription;
+  private langSub?: Subscription;
 
   readonly gameCategory = computed(() => {
     const s = this.sym.scenario();
@@ -91,17 +92,19 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.sym.pause();
-    // Subscribe (not snapshot) so navigating to a sibling scenario while the
-    // component is reused actually reloads the scenario.
     this.paramSub = this.route.paramMap.subscribe((params) => {
       const raw = params.get('scenario') ?? '0';
       this.loadScenario(raw);
+    });
+    this.langSub = this.translate.onLangChange.subscribe(() => {
+      this.updateTitleDescription();
     });
   }
 
   ngOnDestroy(): void {
     this.sym.pause();
     this.paramSub?.unsubscribe();
+    this.langSub?.unsubscribe();
   }
 
   private async loadScenario(raw: string): Promise<void> {
@@ -123,9 +126,18 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   private afterScenarioReady(): void {
+    this.updateTitleDescription();
+    this.resetChart();
+    this.translate.get('GAME_week').subscribe((label) => {
+      for (let i = 1; i <= this.config.weeksOnGant; i++) {
+        this.chart.labels[i * this.config.chartPointsPerWeek] = `${label} ${i}`;
+      }
+    });
+  }
+
+  private updateTitleDescription(): void {
     const scenario = this.sym.scenario();
     if (!scenario) return;
-
     if (!scenario.isRandom) {
       this.title       = this.sym.getScenarioName();
       this.description = this.sym.getScenarioDescription();
@@ -135,13 +147,6 @@ export class GameComponent implements OnInit, OnDestroy {
         .get(`GAME_random_scenario_description_${scenario.levelNmb}`)
         .subscribe((t) => (this.description = t));
     }
-
-    this.resetChart();
-    this.translate.get('GAME_week').subscribe((label) => {
-      for (let i = 1; i <= this.config.weeksOnGant; i++) {
-        this.chart.labels[i * this.config.chartPointsPerWeek] = `${label} ${i}`;
-      }
-    });
   }
 
   resetChart(): void {

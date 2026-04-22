@@ -9,11 +9,12 @@ import { UserService } from '@core/services/user.service';
 import { Scenario } from '@core/models/scenario.model';
 import { UserFunction } from '@core/models/user.model';
 import { AlertComponent } from '@shared/components/alert/alert.component';
+import { LocalizePipe } from '@shared/pipes/localize.pipe';
 
 @Component({
   selector: 'app-welcome',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslateModule, AlertComponent],
+  imports: [CommonModule, FormsModule, RouterLink, TranslateModule, AlertComponent, LocalizePipe],
   templateUrl: './welcome.component.html',
 })
 export class WelcomeComponent implements OnInit {

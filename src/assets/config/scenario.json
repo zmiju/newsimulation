@@ -1,36 +1,42 @@
 {
 	"risks" : [ {
 		"name" : "Zadanie {number} zajmie więcej czasu o {amount} dni",
+		"nameEn" : "Task {number} will take {amount} more days",
 		"target" : "task",
 		"targetId" : "random",
 		"effect" : "+",
 		"type" : "effort"
 	}, {
 		"name" : "Zadanie {number} zajmie mniej czasu o {amount} dni",
+		"nameEn" : "Task {number} will take {amount} fewer days",
 		"target" : "task",
 		"targetId" : "random",
 		"effect" : "-",
 		"type" : "effort"
 	}, {
 		"name" : "Koszt pracownika {resource} wzrósł",
+		"nameEn" : "The cost of employee {resource} increased",
 		"target" : "resource",
 		"targetId" : "random",
 		"effect" : "+",
 		"type" : "cost"
 	}, {
 		"name" : "Koszt pracownika {resource} spadł",
+		"nameEn" : "The cost of employee {resource} decreased",
 		"target" : "resource",
 		"targetId" : "random",
 		"effect" : "-",
 		"type" : "cost"
 	}, {
 		"name" : "Pracownik {resource} podniósł swoją produktywność",
+		"nameEn" : "Employee {resource} increased their productivity",
 		"target" : "resource",
 		"targetId" : "random",
 		"effect" : "+",
 		"type" : "speed"
 	}, {
 		"name" : "Pracownik {resource} będzie nieobecny przez {amount} dni",
+		"nameEn" : "Employee {resource} will be absent for {amount} days",
 		"target" : "resource",
 		"targetId" : "random",
 		"type" : "gone"
@@ -38,8 +44,10 @@
 	"projects" : [
 			{
 				"name" : "Poziom 1 - wyzwanie czasu",
+				"nameEn" : "Level 1 - time challenge",
 				"type" : "tournament",
 				"description" : "Zostałeś zatrudniony na stanowisko asystenta młodszego koordynatora projektów. Twoje pierwsze wyzwanie to pokonanie czasu w prostym projekcie. Zaalokuj po jednym człowieku do każdego zadania i  ukończ ten projekt w ciągu 3 tygodni.",
+				"descriptionEn" : "You have been hired as a junior project coordinator assistant. Your first challenge is to beat time in a simple project. Assign one person to each task and complete this project within 3 weeks.",
 				"multitaskingPenalty" : "0.2",
 				"crashingPenalty" : "0.2",
 				"tasks" : [ {
@@ -74,8 +82,10 @@
 			},
 			{
 				"name" : "Poziom 2 - pierwsza ścieżka krytyczna",
+				"nameEn" : "Level 2 - first critical path",
 				"type" : "tournament",
 				"description" : "Brawo za ukończenie poziomu 1. Teraz otrzymałeś projekt z kilkoma zależnościami między zadaniami, pamiętaj o nich przy alokacji ludzi",
+				"descriptionEn" : "Well done for completing Level 1. You now have a project with several dependencies between tasks — keep them in mind when allocating people.",
 				"multitaskingPenalty" : "0.2",
 				"crashingPenalty" : "0.2",
 				"tasks" : [ {
@@ -120,8 +130,10 @@
 			},
 			{
 			"name" : "Poziom 3 - nowy w zespole projektowym",
+			"nameEn" : "Level 3 - new team member",
 			"type" : "tournament",
 			"description" : "Jeden z członków zespołu ma nieco mniejszą wydajność niż zakłada plan. Weź to pod uwagę przy alokacji zadań.",
+			"descriptionEn" : "One team member has slightly lower productivity than the plan assumes. Take this into account when allocating tasks.",
 			"multitaskingPenalty" : "0.2",
 			"crashingPenalty" : "0.2",
 			"tasks" : [ {
@@ -166,8 +178,10 @@
 		},
 		{
 			"name" : "Poziom 4 - powoli do przodu",
+			"nameEn" : "Level 4 - slow and steady",
 			"type" : "tournament",
 			"description" : "Tym razem zespół nie jest najsilniejszy, ale i projekt nie powinien być wielkim wyzwaniem. Ważne, aby chronić ścieżkę krytyczną.",
+			"descriptionEn" : "This time the team is not the strongest, but the project should not be a great challenge. The important thing is to protect the critical path.",
 			"multitaskingPenalty" : "0.2",
 			"crashingPenalty" : "0.2",
 			"tasks" : [ {
@@ -222,8 +236,10 @@
 		},
 			{
 				"name" : "Poziom 5 - Wyzwanie ścieżki krytycznej",
+				"nameEn" : "Level 5 - Critical Path Challenge",
 				"type" : "tournament",
 				"description" : "Otrzymałeś dość ryzykowny projekt, bowiem większość zadań jest na ścieżce krytycznej. W dodatku połowa twojego zespołu to nowicjusze. Co zrobisz: zwolnisz się, czy wykonasz zadanie? Przy okazji wiadomość - właśnie awansowałeś na koordynatora projektów.",
+				"descriptionEn" : "You have received quite a risky project, as most tasks are on the critical path. Also, half your team are novices. What will you do: quit, or accomplish the mission? By the way — you've just been promoted to project coordinator.",
 				"multitaskingPenalty" : "0.2",
 				"crashingPenalty" : "0.2",
 				"tasks" : [ {
@@ -273,8 +289,10 @@
 			},
 			{
 				"name" : "Poziom 6 - wszystko zmierza do wspólnego końca",
+				"nameEn" : "Level 6 - all roads lead to one end",
 				"type" : "tournament",
 				"description" : "Twój szósty projekt jest dosyć pogmatwany. Pamiętaj - pewne opóźnienia można zaakceptować pod warunkiem, że całość będzie w terminie.",
+				"descriptionEn" : "Your sixth project is quite complex. Remember — some delays can be accepted as long as the whole thing finishes on time.",
 				"multitaskingPenalty" : "0.2",
 				"crashingPenalty" : "0.2",
 				"tasks" : [ {
@@ -339,8 +357,10 @@
 			},
 			{
 				"name" : "Poziom 7 - Patchwork",
+				"nameEn" : "Level 7 - Patchwork",
 				"type" : "tournament",
 				"description" : "W tym projekcie będziesz walczyć z wielozadaniowością. Staraj się tak przeplatać zadania w czasie, aby ten sam człowiek nie wykonywał kilku zadań naraz. Ludzie bardzo nie lubią się przełączać między zadaniami.",
+				"descriptionEn" : "In this project you will fight multitasking. Try to stagger tasks in time so that the same person does not work on several tasks at once. People really dislike switching between tasks.",
 				"multitaskingPenalty" : "0.4",
 				"crashingPenalty" : "0.2",
 				"tasks" : [ {
@@ -405,8 +425,10 @@
 			},
 			{
 				"name" : "Poziom 8 - Marsz ku klęsce",
+				"nameEn" : "Level 8 - March to Defeat",
 				"type" : "tournament",
 				"description" : "Ten projekt naprawdę zmierza ku klęsce. Nie dość, że słaby zespół to jeszcze mnóstwo równoległych zadań. Tylko prawdziwy heros mu podoła w terminie i budżecie.",
+				"descriptionEn" : "This project is truly headed for disaster. Not only is the team weak, but there are plenty of parallel tasks. Only a true hero can deliver it on time and on budget.",
 				"multitaskingPenalty" : "0.4",
 				"crashingPenalty" : "0.2",
 				"tasks" : [ {
@@ -471,8 +493,10 @@
 			},
 			{
 				"name" : "Poziom 9 - Ja pomogę tobie, ty pomożesz mi",
+				"nameEn" : "Level 9 - You help me, I'll help you",
 				"type" : "tournament",
 				"description" : "Zarząd dostrzegł, że się starasz i awansował cię na młodszego kierownika projektów. Przy okazji też podrzucił ci projekt, którego nikt nie chciał wziąć ze słowami: \"Młody jest, będzie chciał się wykazać\".",
+				"descriptionEn" : "Management noticed your efforts and promoted you to junior project manager. They also handed you a project nobody wanted, with the words: \"Young and eager — they'll want to prove themselves\".",
 				"multitaskingPenalty" : "0.2",
 				"crashingPenalty" : "0.2",
 				"tasks" : [ {
@@ -543,8 +567,10 @@
 
 			{
 				"name" : "Poziom 10 - Kaloryfer",
+				"nameEn" : "Level 10 - The Radiator",
 				"type" : "tournament",
 				"description" : "Na takie projekty mówimy kaloryfer. Wszystkie zadania zaplanowane naraz i do tego powolny zespół. Jednak tutaj nie czas, a budżet może okazać się prawdziwym wyzwaniem. Pamiętaj o crashingu.",
+				"descriptionEn" : "We call projects like this a radiator — all tasks scheduled at once with a slow team on top of it. Here it is not time but budget that may prove the real challenge. Remember crashing.",
 				"multitaskingPenalty" : "0.2",
 				"crashingPenalty" : "0.9",
 				"tasks" : [ {
@@ -594,8 +620,10 @@
 			},
 			{
 				"name" : "Poziom 11 - Drogi ekspert",
+				"nameEn" : "Level 11 - The Expensive Expert",
 				"type" : "tournament",
 				"description" : "Do twojego zespołu dołączył zewnętrzny ekspert, który nie jest co prawda szybszy, ale za to dużo droższy od innych pracowników. No i jest bardzo ładna, co ma znaczenie dla morale zespołu.",
+				"descriptionEn" : "An external expert has joined your team — not any faster than others, but significantly more expensive. She is also very attractive, which matters for team morale.",
 				"multitaskingPenalty" : "0.2",
 				"crashingPenalty" : "0.2",
 				"tasks" : [ {
@@ -660,6 +688,7 @@
 			},
 			{
 				"name" : "Lekcja 1 - sklep internetowy",
+				"nameEn" : "Lesson 1 - online shop",
 				"type" : "training",
 				"description" : "",
 				"descriptionUrl" : "views/scenarios/lesson1.html",
@@ -724,9 +753,11 @@
 				}  ],
 				"counterRisks" : [ {
 					"name" : "Szkolenie dla zespołu z analizy biznesowej",
+					"nameEn" : "Business analysis training for the team",
 					"cost" : 10,
 					"risk" : {
 						"name" : "Pracochłonność Zdefiniowania wymagań wzrosła z powodu braku kompetencji zespołu",
+						"nameEn" : "Effort for Requirements Definition increased due to lack of team competence",
 						"target" : "task",
 						"targetId" : 0,
 						"effect" : "+",
@@ -735,12 +766,15 @@
 					}
 				}, {
 					"name" : "Ekspres do kawy",
+					"nameEn" : "Coffee machine",
 					"cost" : 100
 				}, {
 					"name" : "Wyjazd integracyjny",
+					"nameEn" : "Team integration trip",
 					"cost" : 50,
 					"risk" : {
 						"name" : "Pracownik {resource} obniżył swoją produktywność z powodu spadku motywacji",
+						"nameEn" : "Employee {resource} reduced productivity due to declining motivation",
 						"target" : "resource",
 						"targetId" : 0,
 						"effect" : "-",
@@ -749,9 +783,11 @@
 					}
 				},  {
 					"name" : "Zastępstwo Agnieszki w innym projekcie",
+					"nameEn" : "Agnieszka's replacement in another project",
 					"cost" : 20,
 					"risk" : {
 						"name" : "Pracownik {resource} będzie nieobecny przez {amount} dni",
+						"nameEn" : "Employee {resource} will be absent for {amount} days",
 						"target" : "resource",
 						"targetId" : 3,
 						"effect" : "+",
@@ -760,9 +796,11 @@
 					}
 				}, {
 					"name" : "Konsultant do witryny internetowej",
+					"nameEn" : "Website consultant",
 					"cost" : 50
 				},  {
 					"name" : "Nowe meble biurowe",
+					"nameEn" : "New office furniture",
 					"cost" : 200
 				} ]
 			},

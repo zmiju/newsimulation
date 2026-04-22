@@ -1,13 +1,43 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '@core/services/user.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterOutlet, TranslateModule],
+  styles: [`
+    .lang-switcher {
+      display: flex;
+      gap: 2px;
+      align-items: center;
+      margin-right: 12px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #94a3b8;
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .lang-btn:hover {
+      border-color: rgba(255,255,255,0.6);
+      color: #fff;
+    }
+    .lang-btn.active {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.6);
+      color: #fff;
+    }
+  `],
   template: `
     <div class="site-wrapper">
       <div class="site-wrapper-inner">
@@ -58,6 +88,10 @@ import { UserService } from '@core/services/user.service';
                 {{ user.currentUser()?.nick }}
               </span>
             }
+            <div class="lang-switcher">
+              <button class="lang-btn" [class.active]="currentLang() === 'en'" (click)="setLang('en')">EN</button>
+              <button class="lang-btn" [class.active]="currentLang() === 'pl'" (click)="setLang('pl')">PL</button>
+            </div>
             <button class="hamburger" (click)="toggleOffCanvas()" aria-label="Toggle menu">
               &#9776;
             </button>
@@ -75,10 +109,29 @@ import { UserService } from '@core/services/user.service';
     </div>
   `,
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit, OnDestroy {
   readonly user = inject(UserService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
   readonly offCanvasOpen = signal(false);
+  readonly currentLang = signal(this.translate.currentLang ?? this.translate.defaultLang);
+  private langSub?: Subscription;
+
+  ngOnInit(): void {
+    this.langSub = this.translate.onLangChange.subscribe(({ lang }) => {
+      this.currentLang.set(lang);
+    });
+    const active = this.translate.currentLang ?? this.translate.defaultLang;
+    this.currentLang.set(active);
+  }
+
+  ngOnDestroy(): void {
+    this.langSub?.unsubscribe();
+  }
+
+  setLang(lang: string): void {
+    this.translate.use(lang);
+  }
 
   toggleOffCanvas(): void { this.offCanvasOpen.update((v) => !v); }
 

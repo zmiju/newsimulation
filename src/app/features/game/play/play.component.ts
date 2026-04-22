@@ -18,6 +18,7 @@ import { SymulatorService } from '@core/services/symulator.service';
 import { ConfigService } from '@core/services/config.service';
 import { GanttComponent } from '@shared/components/gantt/gantt.component';
 import { AnimateOnChangeDirective } from '@shared/directives/animate-on-change.directive';
+import { LocalizePipe } from '@shared/pipes/localize.pipe';
 
 @Component({
   selector: 'app-play',
@@ -29,6 +30,7 @@ import { AnimateOnChangeDirective } from '@shared/directives/animate-on-change.d
     DragDropModule,
     NgChartsModule,
     AnimateOnChangeDirective,
+    LocalizePipe,
   ],
   templateUrl: './play.component.html',
   animations: [

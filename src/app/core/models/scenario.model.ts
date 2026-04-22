@@ -46,7 +46,9 @@ export interface Simulation {
 export interface Scenario {
   id: number;
   name: string;
+  nameEn?: string;
   description?: string;
+  descriptionEn?: string;
   type?: string;
   isRandom?: boolean;
   levelNmb?: number;

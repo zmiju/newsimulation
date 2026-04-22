@@ -34,7 +34,7 @@
                        [checked]="isCounterRiskSelected(cr.id)"
                        (change)="toggleCounterRisk(cr.id)">
                 <label class="form-check-label" style="font-size:14px;">
-                  {{ cr.name }} &mdash; <span class="text-muted">{{ cr.cost }}{{ 'MAIN_currency' | translate }}</span>
+                  {{ cr | localize }} &mdash; <span class="text-muted">{{ cr.cost }}{{ 'MAIN_currency' | translate }}</span>
                 </label>
               </div>
             }

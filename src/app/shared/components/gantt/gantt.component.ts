@@ -112,8 +112,8 @@ import { Resource } from '@core/models/resource.model';
       to   { opacity: 1; }
     }
 
-    .gantt-chip { transition: transform 0.15s ease; }
-    .gantt-chip:hover { transform: translateY(-1px); }
+    .gantt-chip { transition: opacity 0.15s ease; }
+    .gantt-chip:hover { opacity: 0.85; }
 
     .gantt-week-grid {
       transition: opacity 0.25s ease;

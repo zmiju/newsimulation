@@ -2,6 +2,7 @@
 export interface Risk {
   id: number;
   name?: string;
+  nameEn?: string;
   description?: string;
   /** IDs of counter-risks that mitigate this risk. */
   counterRisks?: number[];
@@ -13,6 +14,7 @@ export interface Risk {
 export interface CounterRisk {
   id: number;
   name?: string;
+  nameEn?: string;
   description?: string;
   cost?: number;
   [key: string]: unknown;

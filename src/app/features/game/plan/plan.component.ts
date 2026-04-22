@@ -7,6 +7,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { SymulatorService } from '@core/services/symulator.service';
 import { UserService } from '@core/services/user.service';
 import { ConfigService } from '@core/services/config.service';
+import { LocalizePipe } from '@shared/pipes/localize.pipe';
 
 /**
  * Planning view — lets the user adjust task start/end/effort, pick counter-risks,
@@ -15,7 +16,7 @@ import { ConfigService } from '@core/services/config.service';
 @Component({
   selector: 'app-plan',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, LocalizePipe],
   templateUrl: './plan.component.html',
 })
 export class PlanComponent {
