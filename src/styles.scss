@@ -59,9 +59,46 @@ body.grabbing * {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 12px 24px;
   max-width: 1280px;
   margin: 0 auto;
+}
+
+.masthead-leading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.masthead-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
+  border-radius: 6px;
+  transition: opacity 0.15s ease;
+}
+
+.masthead-logo:hover {
+  opacity: 0.9;
+}
+
+.masthead-logo img {
+  height: 40px;
+  width: auto;
+  max-width: min(150px, 32vw);
+  object-fit: contain;
+  display: block;
+}
+
+.masthead-trailing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .masthead-brand {
@@ -363,6 +400,100 @@ body.grabbing * {
 }
 
 .plan-task-row .inputs { width: 130px; }
+
+/* ── Secondary play actions (Wylosuj / Reset) — not sticky ────────────────── */
+.play-secondary-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Mobile resource chip strip (inside sticky bar) ───────────────────────── */
+.mobile-chips-bar {
+  margin-top: 10px;
+  border-top: 1px solid #e2e8f0;
+  /* padding-top/right make room for absolutely-positioned badges (top:-8px, right:-8px) */
+  padding: 10px 10px 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-chips-bar::-webkit-scrollbar {
+  height: 3px;
+}
+
+.mobile-chips-bar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.mobile-chips-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  width: max-content;
+}
+
+.resource-chip--mobile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px 5px;
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.resource-chip--mobile-initial {
+  line-height: 1;
+  font-size: 14px;
+}
+
+.resource-chip--mobile-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1px;
+  width: 100%;
+  margin-top: 1px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  cursor: help;
+  opacity: 0.95;
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.resource-chip--mobile-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.resource-chip--mobile-lbl {
+  font-size: 8px;
+  font-weight: 800;
+  opacity: 0.9;
+  min-width: 0.55rem;
+  text-align: left;
+}
+
+.resource-chip--mobile-tier {
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  flex: 1;
+  text-align: right;
+}
 
 /* ── Simulation view ───────────────────────────────────────────────────────── */
 .simulation-top {
@@ -990,11 +1121,20 @@ html, body {
   .high-scores-container iframe { height: 300px; }
 
   /* Off-canvas user nickname label in header – hide to save space */
-  .masthead-inner > span { display: none; }
+  .masthead-nick { display: none; }
 }
 
 /* Small mobile: ≤ 480px ───────────────────────────────────────────────────── */
 @media (max-width: 480px) {
+  .masthead-leading {
+    gap: 8px;
+  }
+
+  .masthead-logo img {
+    height: 32px;
+    max-width: min(120px, 36vw);
+  }
+
   .masthead-brand {
     font-size: 15px;
   }

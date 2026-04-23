@@ -94,7 +94,7 @@ export class ScenarioGeneratorService {
     scenario.taskGroups = partSizes.map((size, i) => {
       const chunk = ids.slice(off, off + size).sort((a, b) => a - b);
       off += size;
-      return { name: `Phase ${i + 1}`, taskIds: chunk };
+      return { name: `Task Group ${i + 1}`, taskIds: chunk };
     });
   }
 

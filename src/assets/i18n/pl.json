@@ -1,5 +1,5 @@
 {
-  "TITLE": "Symulator projektów",
+  "TITLE": "Symulator projektów Octigo",
   "Error": "Błąd",
   "Warning": "Uwaga",
   "Success": "Sukces",
@@ -37,6 +37,7 @@
   "SIGN_IN_modal_function_OTHER": "inny",
 
   "MAIN_currency": "$",
+  "MAIN_octigo_link": "Octigo – otwiera stronę firmy w nowej karcie",
   "MAIN_projects": "Turniej projektów",
   "MAIN_trainings": "Lekcje",
   "MAIN_random": "Tryb losowy",
@@ -125,10 +126,14 @@
   "SIMULATION_ev": "EV",
   "SIMULATION_resource_overloaded": "Przeciążony — zasób przypisany do wielu zadań (multitasking)",
   "SIMULATION_resource_unallocated": "Wolny — nie pracuje aktywnie nad zadaniem. Przeciągnij na zadanie na wykresie Gantta.",
-  "SIMULATION_unallocated_resources_alert": "Co najmniej jeden członek zespołu jest wolny (nieprzypisany, czeka lub ukończył ostatnie zadanie). Przypisz go na wykresie poniżej.",
-  "SIMULATION_multitasking_resources_alert": "Co najmniej jeden członek zespołu ma jednocześnie kilka aktywnych zadań (multitasking). To obniża wydajność — jeśli możesz, popraw przypisania na wykresie poniżej.",
+  "SIMULATION_unallocated_resources_alert": "Co najmniej jeden członek zespołu jest wolny (nieprzypisany, czeka lub ukończył ostatnie zadanie).",
+  "SIMULATION_multitasking_resources_alert": "Co najmniej jeden członek zespołu ma jednocześnie kilka aktywnych zadań (multitasking), co obniża wydajność.",
   "SIMULATION_task_crashing": "Zadanie kraszowane — przypisano wiele zasobów (crashing)",
   "SIMULATION_motivation": "Motywacja",
+  "SIMULATION_resource_chip_speed": "S",
+  "SIMULATION_resource_chip_cost": "K",
+  "SIMULATION_resource_chip_tooltip": "({{speed}}×, {{cost}}{{currency}})",
+  "SIMULATION_resource_chip_aria": "Prędkość {{speed}} razy, koszt {{cost}} {{currency}}.",
 
   "SUMMARY_pv_hint": "Planned Value",
   "SUMMARY_ev_hint": "Earned Value",

@@ -1,9 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { ConfigService } from './config.service';
 import { FirebaseService } from './firebase.service';
-import { User, HighScore } from '../models/user.model';
+import { User } from '../models/user.model';
 import { Plan, Scenario } from '../models/scenario.model';
 
 const LS_LAST_USER = 'last_user';
@@ -11,13 +9,11 @@ const LS_LAST_USER = 'last_user';
 /**
  * Stores the signed-in user plus their saved plans and finished-game history.
  * Data is persisted in localStorage, scoped per user email, matching the original
- * `userService` behaviour. The backend call for "consent" and "score" is preserved
- * but non-blocking; errors are logged only (as in the AngularJS version).
+ * `userService` behaviour. Firestore is used for remote persistence when the user
+ * signs in; there is no legacy PHP endpoint.
  */
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private readonly http = inject(HttpClient);
-  private readonly config = inject(ConfigService);
   private readonly firebase = inject(FirebaseService);
 
   // ── Reactive state ────────────────────────────────────────────────────
@@ -43,11 +39,10 @@ export class UserService {
   }
 
   // ── Auth / identity ──────────────────────────────────────────────────
-  setCurrentUser(user: User, sendToBackend = true): void {
+  setCurrentUser(user: User, persistToCloud = true): void {
     this._currentUser.set({ ...user });
     localStorage.setItem(LS_LAST_USER, JSON.stringify(user));
-    if (sendToBackend) {
-      this.sendToBackend(user);
+    if (persistToCloud) {
       this.saveUserToFirestore(user);
     }
     this.restoreStateFromStorage();
@@ -130,39 +125,5 @@ export class UserService {
     } catch (err) {
       console.log('error saving user to Firestore', err);
     }
-  }
-
-  // ── Backend (best-effort, fire-and-forget) ───────────────────────────
-  private sendToBackend(user: User): void {
-    const params = new HttpParams()
-      .set('stan',    'zgoda')
-      .set('email',   user.email)
-      .set('nick',    user.nick)
-      .set('funkcja', user.function);
-
-    this.http.post(`${this.config.backendUrl}/ajax.php`, null, { params })
-      .subscribe({
-        next:  () => console.log(`User ${user.email} sent to backend`),
-        error: (err) => console.log('error requesting backend', err),
-      });
-  }
-
-  sendHighScore(score: HighScore): void {
-    const u = this._currentUser();
-    if (!u) return;
-
-    const params = new HttpParams()
-      .set('stan',   'koniec')
-      .set('r',      Math.round(score.points).toString())
-      .set('spi',    Math.round(score.spi).toString())
-      .set('cpi',    Math.round(score.cpi).toString())
-      .set('poziom', (score.level + 11).toString())
-      .set('nick',   u.nick);
-
-    this.http.post(`${this.config.backendUrl}/ajax.php`, null, { params })
-      .subscribe({
-        next:  () => console.log(`High score of user ${u.nick} sent to backend`),
-        error: (err) => console.log('error requesting backend', err),
-      });
   }
 }

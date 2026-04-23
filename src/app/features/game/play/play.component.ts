@@ -296,6 +296,24 @@ export class PlayComponent {
 
   get isRiskAvailable(): boolean { return this.sym.isRiskAvailable(); }
 
+  chipTextColor(bgColor: string): string {
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 0.5 ? '#1a1a1a' : '#fff';
+  }
+
+  /**
+   * vs baseline 1.0: ↑ = above 1.0, · ≈ 1.0, ↓ = below 1.0.
+   * For speed, above = faster; for cost, above = more expensive (same as desktop).
+   */
+  resourceTierChar(value: number): string {
+    if (value > 1.05) return '↑';
+    if (value < 0.95) return '↓';
+    return '·';
+  }
+
   private initChart(): void {
     // Rebuild PV and labels at full resolution — mutate in place to keep the
     // same array references the chart is bound to.

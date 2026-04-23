@@ -375,7 +375,7 @@ type GanttRow =
                         y="17"
                         [attr.width]="row.task.effort * weekPx"
                         height="14"
-                        [attr.fill]="row.task.isCompleted ? '#8bc34a' : '#ff9f15'"
+                        [attr.fill]="row.task.isCompleted ? '#8bc34a' : criticalTaskIds().has(row.task.id) ? '#ef4444' : '#ff9f15'"
                         opacity="0.85" />
 
                   <!-- Completion overlay -->
@@ -392,7 +392,7 @@ type GanttRow =
                   @for (r of row.task.resourcesAssigned; track r.id; let ri = $index) {
                     <g class="gantt-chip"
                        @chipEnter
-                       [attr.transform]="'translate(' + (labelWidth + ri * (chipW + 4)) + ',' + (rowHeight - chipH - 4) + ')'"
+                       [attr.transform]="'translate(' + (labelWidth + row.task.start * weekPx + ri * (chipW + 4)) + ',' + (rowHeight - chipH - 4) + ')'"
                        style="cursor:default;">
                       <!-- pill background -->
                       <rect x="0" y="0"
@@ -402,13 +402,15 @@ type GanttRow =
                       <!-- avatar circle -->
                       <circle cx="10" cy="10" r="8" fill="rgba(0,0,0,0.25)" />
                       <text x="10" y="14" text-anchor="middle"
-                            font-size="9" font-weight="bold" fill="#fff"
+                            font-size="9" font-weight="bold"
+                            [attr.fill]="chipTextColor(r.color)"
                             style="pointer-events:none;">
                         {{ r.name[0] }}
                       </text>
                       <!-- name -->
                       <text x="23" y="14"
-                            font-size="10" fill="#fff"
+                            font-size="10"
+                            [attr.fill]="chipTextColor(r.color)"
                             style="pointer-events:none;">
                         {{ r.name }}
                       </text>
@@ -536,6 +538,13 @@ export class GanttComponent {
     this.hoveredDepKey.set(null);
   }
   readonly depPaths = computed(() => this.buildDepPaths());
+  readonly criticalTaskIds = computed((): Set<number> => {
+    const sim = this.sym.simulation();
+    const s   = this.scenario();
+    const defs = s?.tasks;
+    if (!sim || !defs) return new Set();
+    return this.computeCriticalTaskSet(sim.tasks, defs);
+  });
 
   /** Frozen plan task positions — used for the baseline bar (never updated during simulation). */
   readonly baselineTasks = computed(() =>
@@ -659,6 +668,14 @@ export class GanttComponent {
 
   round(value: number | undefined): number {
     return Math.round(value ?? 0);
+  }
+
+  chipTextColor(bgColor: string): string {
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 0.5 ? '#1a1a1a' : '#fff';
   }
 
   isPhaseRowExpanded(phaseKey: string): boolean {
@@ -787,13 +804,12 @@ export class GanttComponent {
    * The backward pass iterates up to N times so it converges regardless of
    * task ordering in the array.
    */
-  private computeCriticalLinks(
+  private computeCriticalTaskSet(
     tasks: Array<{ start: number; end: number; effort: number }>,
     defs:  import('@core/models/task.model').Task[],
-  ): Set<string> {
+  ): Set<number> {
     const n = tasks.length;
     const eps = 1e-4;
-
     const projectEnd = tasks.reduce((m, t) => Math.max(m, t.end ?? t.start + t.effort), 0);
     const LF = new Array<number>(n).fill(projectEnd);
 
@@ -815,6 +831,15 @@ export class GanttComponent {
     tasks.forEach((t, i) => {
       if (LF[i] - (t.end ?? t.start + t.effort) < eps) criticalTasks.add(i);
     });
+    return criticalTasks;
+  }
+
+  private computeCriticalLinks(
+    tasks: Array<{ start: number; end: number; effort: number }>,
+    defs:  import('@core/models/task.model').Task[],
+  ): Set<string> {
+    const criticalTasks = this.computeCriticalTaskSet(tasks, defs);
+    const eps = 1e-4;
 
     const criticalLinks = new Set<string>();
     defs.forEach((def, i) => {

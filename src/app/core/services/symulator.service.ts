@@ -465,12 +465,6 @@ export class SymulatorService {
       this._isStartedNotCompleted.set(false);
       const result = this._scenario()?.result;
       if (result && (result as unknown as Record<string, unknown>)['reason'] === 'completed') {
-        this.users.sendHighScore({
-          points: result.points,
-          spi: result.spi,
-          cpi: result.cpi,
-          level: (result as unknown as Record<string, number>)['level'] ?? 0,
-        });
         const gameType = this.getGameCategory();
         this.ranking.saveScore(gameType, result.points).then(() => {
           this.ranking.refreshRanking(gameType);

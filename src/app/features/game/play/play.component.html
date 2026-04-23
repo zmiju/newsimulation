@@ -1,7 +1,20 @@
 @if (scenario; as s) {
   @if (sim; as sim) {
-  <div class="play-view" @pageEnter>
-    <!-- Metrics + actions bar -->
+  <div class="play-view" @pageEnter cdkDropListGroup>
+
+    <!-- Secondary actions: Wylosuj + Reset — not sticky, scroll away -->
+    <div class="play-secondary-actions">
+      @if (s.isRandom) {
+        <button class="btn btn-outline-primary btn-sm btn-animated" (click)="generateNew()">
+          {{ 'SIMULATION_generate_new_random' | translate }}
+        </button>
+      }
+      <button class="btn btn-outline-secondary btn-sm btn-animated" (click)="reset()">
+        {{ 'SIMULATION_reset' | translate }}
+      </button>
+    </div>
+
+    <!-- Metrics + actions bar (sticky) -->
     <div class="simulation-top" @simTopEnter>
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
 
@@ -63,7 +76,7 @@
           </div>
         </div>
 
-        <!-- Action buttons -->
+        <!-- Action buttons: Play/Pause + Risk only -->
         <div class="d-flex align-items-center gap-2 action-bar">
           @if (!sym.isPlaying()) {
             <button class="btn btn-primary btn-sm btn-animated" (click)="play()" @buttonSwap>
@@ -74,14 +87,6 @@
               &#9646;&#9646; {{ 'SIMULATION_pause' | translate }}
             </button>
           }
-          @if (s.isRandom) {
-            <button class="btn btn-outline-primary btn-sm btn-animated" (click)="generateNew()">
-              {{ 'SIMULATION_generate_new_random' | translate }}
-            </button>
-          }
-          <button class="btn btn-outline-secondary btn-sm btn-animated" (click)="reset()">
-            {{ 'SIMULATION_reset' | translate }}
-          </button>
           @if (isRiskAvailable) {
             <button class="btn btn-danger btn-sm btn-animated btn-risk" (click)="fireRisk()" @buttonSwap>
               &#9888; {{ 'SIMULATION_risk' | translate }}
@@ -89,52 +94,36 @@
           }
         </div>
       </div>
-    </div>
 
-    <!-- EVM chart: PV (dashed blue), EV (green), AC (red) grow as simulation runs -->
-    <div class="evm-chart-wrap" @chartEnter style="width: 100%; max-width: 700px; height: clamp(220px, 40vw, 320px); margin: 12px 0;">
-      <canvas baseChart
-              [data]="lineChartData"
-              [options]="lineChartOptions"
-              type="line">
-      </canvas>
-    </div>
-
-    <!-- Drop group: palette + Gantt overlays share the same group -->
-    <div cdkDropListGroup>
-
-      <!-- Resource palette -->
-      <div class="palette-wrap" @paletteEnter>
-        @if (sym.hasUnallocatedResources() || sym.hasMultitaskingResources()) {
-          <div class="d-flex flex-column gap-2 mb-2">
-            @if (sym.hasUnallocatedResources()) {
-              <div class="alert alert-success py-2 px-3 mb-0" role="status">
-                {{ 'SIMULATION_unallocated_resources_alert' | translate }}
-              </div>
-            }
-            @if (sym.hasMultitaskingResources()) {
-              <div class="alert alert-warning py-2 px-3 mb-0" role="status">
-                {{ 'SIMULATION_multitasking_resources_alert' | translate }}
-              </div>
-            }
-          </div>
-        }
+      <!-- Mobile-only resource chips (initials only) -->
+      <div class="d-md-none mobile-chips-bar">
         <div cdkDropList
              [cdkDropListData]="sim.resources"
              cdkDropListOrientation="horizontal"
-             class="resources-container"
+             class="mobile-chips-list"
              @resourcesStagger>
           @for (r of sim.resources; track r.id) {
             <div cdkDrag [cdkDragData]="r"
-                 class="resource-chip badge"
+                 class="resource-chip resource-chip--mobile"
                  [class.resource-chip--overloaded]="sym.isResourceOverloaded(r)"
                  [class.resource-chip--unallocated]="sym.isResourceUnallocated(r)"
-                 [style.background]="r.color">
-              {{ r.name }}
-              <small style="opacity:0.75;">({{ r.speed | number:'1.1-1' }}x, {{ r.cost | number:'1.1-1' }}{{ 'MAIN_currency' | translate }})</small>
+                 [style.background]="r.color"
+                 [style.color]="chipTextColor(r.color)">
+              <span class="resource-chip--mobile-initial">{{ r.name[0] }}</span>
+              <div class="resource-chip--mobile-meta"
+                   [attr.title]="'SIMULATION_resource_chip_tooltip' | translate: { speed: (r.speed | number:'1.1-1'), cost: (r.cost | number:'1.1-1'), currency: ('MAIN_currency' | translate) }"
+                   [attr.aria-label]="'SIMULATION_resource_chip_aria' | translate: { speed: (r.speed | number:'1.1-1'), cost: (r.cost | number:'1.1-1'), currency: ('MAIN_currency' | translate) }">
+                <div class="resource-chip--mobile-stat" aria-hidden="true">
+                  <span class="resource-chip--mobile-lbl">{{ 'SIMULATION_resource_chip_speed' | translate }}</span>
+                  <span class="resource-chip--mobile-tier">{{ resourceTierChar(r.speed) }}</span>
+                </div>
+                <div class="resource-chip--mobile-stat" aria-hidden="true">
+                  <span class="resource-chip--mobile-lbl">{{ 'SIMULATION_resource_chip_cost' | translate }}</span>
+                  <span class="resource-chip--mobile-tier">{{ resourceTierChar(r.cost) }}</span>
+                </div>
+              </div>
               <div class="resource-motivation"
-                   [title]="('SIMULATION_motivation' | translate) + ': ' + (r.motivation * 100 | number:'1.0-0') + '%'"
-                   [attr.aria-label]="'motivation ' + (r.motivation * 100 | number:'1.0-0') + '%'">
+                   [title]="('SIMULATION_motivation' | translate) + ': ' + (r.motivation * 100 | number:'1.0-0') + '%'">
                 <div class="resource-motivation__bar"
                      [class.resource-motivation__bar--low]="r.motivation < 0.5"
                      [class.resource-motivation__bar--critical]="r.motivation < 0.25"
@@ -142,15 +131,11 @@
               </div>
               @if (sym.isResourceUnallocated(r)) {
                 <span class="resource-unallocated-badge"
-                      [title]="'SIMULATION_resource_unallocated' | translate"
-                      aria-label="unallocated">
-                  &#9675;
-                </span>
+                      [title]="'SIMULATION_resource_unallocated' | translate">&#9675;</span>
               }
               @if (sym.isResourceOverloaded(r)) {
                 <span class="resource-overload-badge"
-                      [title]="('SIMULATION_resource_overloaded' | translate) + ' (' + sym.getNumberOfTasksForResource(r) + ')'"
-                      aria-label="overloaded">
+                      [title]="('SIMULATION_resource_overloaded' | translate) + ' (' + sym.getNumberOfTasksForResource(r) + ')'">
                   &#9888;
                   <span class="resource-overload-badge__count">{{ sym.getNumberOfTasksForResource(r) }}</span>
                 </span>
@@ -159,13 +144,79 @@
           }
         </div>
       </div>
+    </div>
 
-      <!-- Gantt chart -->
-      <div id="svg-container" class="gantt-container" @ganttEnter
-           style="overflow: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
-        <app-gantt [scenario]="s" />
+    <!-- EVM chart -->
+    <div class="evm-chart-wrap" @chartEnter style="width: 100%; max-width: 700px; height: clamp(220px, 40vw, 320px); margin: 12px 0;">
+      <canvas baseChart
+              [data]="lineChartData"
+              [options]="lineChartOptions"
+              type="line">
+      </canvas>
+    </div>
+
+    <!-- Resource palette (desktop only) -->
+    <div class="palette-wrap d-none d-md-block" @paletteEnter>
+      @if (sym.hasUnallocatedResources() || sym.hasMultitaskingResources()) {
+        <div class="d-flex flex-column gap-2 mb-2">
+          @if (sym.hasUnallocatedResources()) {
+            <div class="alert alert-success py-2 px-3 mb-0" role="status">
+              {{ 'SIMULATION_unallocated_resources_alert' | translate }}
+            </div>
+          }
+          @if (sym.hasMultitaskingResources()) {
+            <div class="alert alert-warning py-2 px-3 mb-0" role="status">
+              {{ 'SIMULATION_multitasking_resources_alert' | translate }}
+            </div>
+          }
+        </div>
+      }
+      <div cdkDropList
+           [cdkDropListData]="sim.resources"
+           cdkDropListOrientation="horizontal"
+           class="resources-container"
+           @resourcesStagger>
+        @for (r of sim.resources; track r.id) {
+          <div cdkDrag [cdkDragData]="r"
+               class="resource-chip badge"
+               [class.resource-chip--overloaded]="sym.isResourceOverloaded(r)"
+               [class.resource-chip--unallocated]="sym.isResourceUnallocated(r)"
+               [style.background]="r.color"
+               [style.color]="chipTextColor(r.color)">
+            {{ r.name }}
+            <small style="opacity:0.75;">({{ r.speed | number:'1.1-1' }}x, {{ r.cost | number:'1.1-1' }}{{ 'MAIN_currency' | translate }})</small>
+            <div class="resource-motivation"
+                 [title]="('SIMULATION_motivation' | translate) + ': ' + (r.motivation * 100 | number:'1.0-0') + '%'"
+                 [attr.aria-label]="'motivation ' + (r.motivation * 100 | number:'1.0-0') + '%'">
+              <div class="resource-motivation__bar"
+                   [class.resource-motivation__bar--low]="r.motivation < 0.5"
+                   [class.resource-motivation__bar--critical]="r.motivation < 0.25"
+                   [style.width.%]="sym.getResourceMotivation(r) * 100"></div>
+            </div>
+            @if (sym.isResourceUnallocated(r)) {
+              <span class="resource-unallocated-badge"
+                    [title]="'SIMULATION_resource_unallocated' | translate"
+                    aria-label="unallocated">
+                &#9675;
+              </span>
+            }
+            @if (sym.isResourceOverloaded(r)) {
+              <span class="resource-overload-badge"
+                    [title]="('SIMULATION_resource_overloaded' | translate) + ' (' + sym.getNumberOfTasksForResource(r) + ')'"
+                    aria-label="overloaded">
+                &#9888;
+                <span class="resource-overload-badge__count">{{ sym.getNumberOfTasksForResource(r) }}</span>
+              </span>
+            }
+          </div>
+        }
       </div>
+    </div>
 
+    <!-- Gantt chart -->
+    <div id="svg-container" class="gantt-container" @ganttEnter
+         style="overflow: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
+      <app-gantt [scenario]="s" />
     </div>
 
     <!-- Reset confirmation modal -->
@@ -190,7 +241,7 @@
       </div>
     }
 
-    <!-- Risk popup (inline modal). Pauses simulation while open, applies impact on close. -->
+    <!-- Risk popup -->
     @if (sym.pendingRisk(); as risk) {
       <div class="risk-popup-backdrop" (click)="closeRiskPopup()" @riskBackdrop></div>
       <div class="risk-popup" role="dialog" aria-modal="true" @riskPopup>

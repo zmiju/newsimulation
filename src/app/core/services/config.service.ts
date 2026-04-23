@@ -57,8 +57,6 @@ export class ConfigService {
     speed:  0.2,
   };
 
-  readonly backendUrl = 'http://octigo.pl/dev';
-
   readonly risksAvailability = [
     { from: 1, to: 2 },
     { from: 4, to: 5 },

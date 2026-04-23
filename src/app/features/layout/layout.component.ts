@@ -78,23 +78,41 @@ import { Subscription } from 'rxjs';
         <!-- Header -->
         <header class="masthead">
           <div class="masthead-inner">
-            <h1 class="masthead-brand">
-              <a [routerLink]="['/welcome']" class="title-link">
-                {{ 'TITLE' | translate }}
+            <div class="masthead-leading">
+              <a
+                class="masthead-logo"
+                href="https://www.octigo.pl"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="'MAIN_octigo_link' | translate"
+              >
+                <img
+                  src="assets/octigologo.jpg"
+                  width="140"
+                  height="40"
+                  alt=""
+                />
               </a>
-            </h1>
-            @if (user.currentUser()) {
-              <span style="font-size:13px; color:#94a3b8;">
-                {{ user.currentUser()?.nick }}
-              </span>
-            }
-            <div class="lang-switcher">
-              <button class="lang-btn" [class.active]="currentLang() === 'en'" (click)="setLang('en')">EN</button>
-              <button class="lang-btn" [class.active]="currentLang() === 'pl'" (click)="setLang('pl')">PL</button>
+              <h1 class="masthead-brand">
+                <a [routerLink]="['/welcome']" class="title-link">
+                  {{ 'TITLE' | translate }}
+                </a>
+              </h1>
             </div>
-            <button class="hamburger" (click)="toggleOffCanvas()" aria-label="Toggle menu">
-              &#9776;
-            </button>
+            <div class="masthead-trailing">
+              @if (user.currentUser()) {
+                <span class="masthead-nick" style="font-size:13px; color:#94a3b8;">
+                  {{ user.currentUser()?.nick }}
+                </span>
+              }
+              <div class="lang-switcher">
+                <button class="lang-btn" [class.active]="currentLang() === 'en'" (click)="setLang('en')">EN</button>
+                <button class="lang-btn" [class.active]="currentLang() === 'pl'" (click)="setLang('pl')">PL</button>
+              </div>
+              <button class="hamburger" (click)="toggleOffCanvas()" aria-label="Toggle menu">
+                &#9776;
+              </button>
+            </div>
           </div>
         </header>
 

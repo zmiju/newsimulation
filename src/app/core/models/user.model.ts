@@ -14,10 +14,3 @@ export interface User {
   function: UserFunction | string;
   termsAccepted?: boolean;
 }
-
-export interface HighScore {
-  points: number;
-  spi: number;
-  cpi: number;
-  level: number;
-}
