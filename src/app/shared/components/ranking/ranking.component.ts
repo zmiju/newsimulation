@@ -50,7 +50,7 @@ import { RankingService } from '@core/services/ranking.service';
                     } @else { – }
                   </td>
                   <td class="col-score">{{ entry.score | number:'1.0-0' }}</td>
-                  <td class="col-date">{{ entry.date | date:'dd.MM.yyyy' }}</td>
+                  <td class="col-date">{{ entry.date | date:'HH:mm yy.MM.dd' }}</td>
                 </tr>
               }
             </tbody>
@@ -155,7 +155,7 @@ import { RankingService } from '@core/services/ranking.service';
     .col-rank { width: 36px; text-align: center; font-size: 16px; }
     .col-country { width: 120px; max-width: 120px; color: #64748b; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .col-score { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; color: #1d4ed8; }
-    .col-date { color: #94a3b8; font-size: 12px; }
+    .col-date { color: #94a3b8; font-size: 12px; white-space: nowrap; }
   `],
 })
 export class RankingComponent implements OnChanges {

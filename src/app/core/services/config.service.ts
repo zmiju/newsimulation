@@ -83,7 +83,7 @@ export class ConfigService {
 
   readonly generator: GeneratorConfig = {
     multitaskingPenalty: 0.2,
-    crashingPenalty: 0.2,
+    crashingPenalty: 0.1,
     switchingPenalty: 0.3,
     effort: { min: 0.2, max: 2 },
     start:  { min: 0,   max: 2 },

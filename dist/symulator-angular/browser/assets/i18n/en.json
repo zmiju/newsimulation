@@ -124,6 +124,9 @@
   "SIMULATION_ac": "AC",
   "SIMULATION_ev": "EV",
   "SIMULATION_resource_overloaded": "Overloaded — resource assigned to multiple tasks (multitasking)",
+  "SIMULATION_resource_unallocated": "Idle — not working on an active task. Drag onto a Gantt task to assign.",
+  "SIMULATION_unallocated_resources_alert": "One or more team members are idle (unassigned, waiting, or finished their last task). Assign them on the Gantt below.",
+  "SIMULATION_multitasking_resources_alert": "One or more team members are on several active tasks at once (multitasking). This reduces output — reassign on the Gantt below if you can.",
   "SIMULATION_task_crashing": "Task crashing — multiple resources assigned (crashing)",
   "SIMULATION_motivation": "Motivation",
 
@@ -136,6 +139,10 @@
   "SUMMARY_cpi_under": "Under budget",
   "SUMMARY_cpi_slight": "Slightly over",
   "SUMMARY_cpi_over": "Over budget",
+  "SUMMARY_duration_label": "DUR",
+  "SUMMARY_duration_on_time": "On schedule",
+  "SUMMARY_duration_slight": "Slightly late",
+  "SUMMARY_duration_late": "Project overran",
 
   "GANT_task": "Task",
   "GANT_week": "Week",
@@ -147,7 +154,7 @@
   "RANKING_col_nickname": "Player",
   "RANKING_col_country": "Country",
   "RANKING_col_score": "Score",
-  "RANKING_col_date": "Date",
+  "RANKING_col_date": "Date & time",
 
   "WELCOME_heading": "Welcome to the Octigo project simulator",
   "WELCOME_goal_title": "Goal of the simulator",
@@ -168,5 +175,8 @@
   "WELCOME_feature_modes_label": "Multiple modes",
   "WELCOME_feature_modes_desc": "Lessons with a case study, tournaments on shared scenarios, and random mode with three difficulty levels.",
   "WELCOME_modes_title": "Game modes",
-  "WELCOME_modes_p": "Below you can select one of three game modes. In lesson mode you can start your lesson with a case study, then plan and implement it. In tournament mode you can choose one of the already planned projects and implement it, and then compare your results to others in the ranking. In random project mode, the simulator will generate a random project for you on one of the three difficulty levels."
+  "WELCOME_modes_p": "Below you can select one of three game modes. In lesson mode you can start your lesson with a case study, then plan and implement it. In tournament mode you can choose one of the already planned projects and implement it, and then compare your results to others in the ranking. In random project mode, the simulator will generate a random project for you on one of the three difficulty levels.",
+  "GANTT_phase_label": "{{name}}: {{n}}%",
+  "GANTT_phase_expand": "Show subtasks",
+  "GANTT_phase_collapse": "Hide subtasks"
 }

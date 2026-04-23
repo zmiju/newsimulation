@@ -49,7 +49,7 @@
 				"description" : "Zostałeś zatrudniony na stanowisko asystenta młodszego koordynatora projektów. Twoje pierwsze wyzwanie to pokonanie czasu w prostym projekcie. Zaalokuj po jednym człowieku do każdego zadania i  ukończ ten projekt w ciągu 3 tygodni.",
 				"descriptionEn" : "You have been hired as a junior project coordinator assistant. Your first challenge is to beat time in a simple project. Assign one person to each task and complete this project within 3 weeks.",
 				"multitaskingPenalty" : "0.2",
-				"crashingPenalty" : "0.2",
+				"crashingPenalty" : "0.1",
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 2.32,
@@ -87,7 +87,7 @@
 				"description" : "Brawo za ukończenie poziomu 1. Teraz otrzymałeś projekt z kilkoma zależnościami między zadaniami, pamiętaj o nich przy alokacji ludzi",
 				"descriptionEn" : "Well done for completing Level 1. You now have a project with several dependencies between tasks — keep them in mind when allocating people.",
 				"multitaskingPenalty" : "0.2",
-				"crashingPenalty" : "0.2",
+				"crashingPenalty" : "0.1",
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 1.52,
@@ -135,7 +135,7 @@
 			"description" : "Jeden z członków zespołu ma nieco mniejszą wydajność niż zakłada plan. Weź to pod uwagę przy alokacji zadań.",
 			"descriptionEn" : "One team member has slightly lower productivity than the plan assumes. Take this into account when allocating tasks.",
 			"multitaskingPenalty" : "0.2",
-			"crashingPenalty" : "0.2",
+			"crashingPenalty" : "0.1",
 			"tasks" : [ {
 				"start" : 0,
 				"effort" : 1.52,
@@ -183,7 +183,7 @@
 			"description" : "Tym razem zespół nie jest najsilniejszy, ale i projekt nie powinien być wielkim wyzwaniem. Ważne, aby chronić ścieżkę krytyczną.",
 			"descriptionEn" : "This time the team is not the strongest, but the project should not be a great challenge. The important thing is to protect the critical path.",
 			"multitaskingPenalty" : "0.2",
-			"crashingPenalty" : "0.2",
+			"crashingPenalty" : "0.1",
 			"tasks" : [ {
 				"start" : 0,
 				"effort" : 1.52,
@@ -241,7 +241,7 @@
 				"description" : "Otrzymałeś dość ryzykowny projekt, bowiem większość zadań jest na ścieżce krytycznej. W dodatku połowa twojego zespołu to nowicjusze. Co zrobisz: zwolnisz się, czy wykonasz zadanie? Przy okazji wiadomość - właśnie awansowałeś na koordynatora projektów.",
 				"descriptionEn" : "You have received quite a risky project, as most tasks are on the critical path. Also, half your team are novices. What will you do: quit, or accomplish the mission? By the way — you've just been promoted to project coordinator.",
 				"multitaskingPenalty" : "0.2",
-				"crashingPenalty" : "0.2",
+				"crashingPenalty" : "0.1",
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 0.76,
@@ -294,7 +294,7 @@
 				"description" : "Twój szósty projekt jest dosyć pogmatwany. Pamiętaj - pewne opóźnienia można zaakceptować pod warunkiem, że całość będzie w terminie.",
 				"descriptionEn" : "Your sixth project is quite complex. Remember — some delays can be accepted as long as the whole thing finishes on time.",
 				"multitaskingPenalty" : "0.2",
-				"crashingPenalty" : "0.2",
+				"crashingPenalty" : "0.1",
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 0.76,
@@ -362,7 +362,7 @@
 				"description" : "W tym projekcie będziesz walczyć z wielozadaniowością. Staraj się tak przeplatać zadania w czasie, aby ten sam człowiek nie wykonywał kilku zadań naraz. Ludzie bardzo nie lubią się przełączać między zadaniami.",
 				"descriptionEn" : "In this project you will fight multitasking. Try to stagger tasks in time so that the same person does not work on several tasks at once. People really dislike switching between tasks.",
 				"multitaskingPenalty" : "0.4",
-				"crashingPenalty" : "0.2",
+				"crashingPenalty" : "0.1",
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 0.76,
@@ -430,7 +430,7 @@
 				"description" : "Ten projekt naprawdę zmierza ku klęsce. Nie dość, że słaby zespół to jeszcze mnóstwo równoległych zadań. Tylko prawdziwy heros mu podoła w terminie i budżecie.",
 				"descriptionEn" : "This project is truly headed for disaster. Not only is the team weak, but there are plenty of parallel tasks. Only a true hero can deliver it on time and on budget.",
 				"multitaskingPenalty" : "0.4",
-				"crashingPenalty" : "0.2",
+				"crashingPenalty" : "0.1",
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 0.76,
@@ -498,17 +498,17 @@
 				"description" : "Zarząd dostrzegł, że się starasz i awansował cię na młodszego kierownika projektów. Przy okazji też podrzucił ci projekt, którego nikt nie chciał wziąć ze słowami: \"Młody jest, będzie chciał się wykazać\".",
 				"descriptionEn" : "Management noticed your efforts and promoted you to junior project manager. They also handed you a project nobody wanted, with the words: \"Young and eager — they'll want to prove themselves\".",
 				"multitaskingPenalty" : "0.2",
-				"crashingPenalty" : "0.2",
+				"crashingPenalty" : "0.1",
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 0.76,
-					"dependants" : [ "1" ],
+					"dependants" : [],
 					"dependsOn" : []
 				}, {
-					"start" : 3.06,
+					"start" : 0,
 					"effort" : 0.74,
 					"dependants" : [ "3" ],
-					"dependsOn" : [ 0, 7 ]
+					"dependsOn" : [ 7 ]
 				}, {
 					"start" : 0,
 					"effort" : 2.28,
@@ -572,7 +572,7 @@
 				"description" : "Na takie projekty mówimy kaloryfer. Wszystkie zadania zaplanowane naraz i do tego powolny zespół. Jednak tutaj nie czas, a budżet może okazać się prawdziwym wyzwaniem. Pamiętaj o crashingu.",
 				"descriptionEn" : "We call projects like this a radiator — all tasks scheduled at once with a slow team on top of it. Here it is not time but budget that may prove the real challenge. Remember crashing.",
 				"multitaskingPenalty" : "0.2",
-				"crashingPenalty" : "0.9",
+				"crashingPenalty" : "0.45",
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 2.28,
@@ -625,7 +625,7 @@
 				"description" : "Do twojego zespołu dołączył zewnętrzny ekspert, który nie jest co prawda szybszy, ale za to dużo droższy od innych pracowników. No i jest bardzo ładna, co ma znaczenie dla morale zespołu.",
 				"descriptionEn" : "An external expert has joined your team — not any faster than others, but significantly more expensive. She is also very attractive, which matters for team morale.",
 				"multitaskingPenalty" : "0.2",
-				"crashingPenalty" : "0.2",
+				"crashingPenalty" : "0.1",
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 0.76,
@@ -693,7 +693,7 @@
 				"description" : "",
 				"descriptionUrl" : "views/scenarios/lesson1.html",
 				"multitaskingPenalty" : "0.2",
-				"crashingPenalty" : "0.2",
+				"crashingPenalty" : "0.1",
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 0.80,
@@ -810,7 +810,7 @@
 				"description" : "",
 				"descriptionUrl" : "views/scenarios/lesson2.html",
 				"multitaskingPenalty" : 0.4,
-				"crashingPenalty" : 0.2,
+				"crashingPenalty" : 0.1,
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 1.0,
@@ -945,7 +945,7 @@
 				"description" : "",
 				"descriptionUrl" : "views/scenarios/lesson3.html",
 				"multitaskingPenalty" : 0.5,
-				"crashingPenalty" : 0.3,
+				"crashingPenalty" : 0.15,
 				"tasks" : [ {
 					"start" : 0,
 					"effort" : 1,

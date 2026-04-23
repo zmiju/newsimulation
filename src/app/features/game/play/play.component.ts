@@ -238,6 +238,7 @@ export class PlayComponent {
         return;
       }
 
+      this.ensureEvmChartPointCapacity();
       // Add a new point whenever simulation crosses the next chart interval.
       const place = Math.floor(sim.time * this.config.chartPointsPerWeek);
       if (place >= this.evData.length) {
@@ -253,6 +254,11 @@ export class PlayComponent {
 
   play(): void  { this.sym.play(); }
   pause(): void { this.sym.pause(); }
+
+  generateNew(): void {
+    this.sym.pause();
+    this.sym.startRandom();
+  }
 
   showResetConfirm = false;
 
@@ -282,8 +288,6 @@ export class PlayComponent {
     this.sym.fireRisk();
   }
 
-  get pendingRisk() { return this.sym.pendingRisk(); }
-
   closeRiskPopup(): void {
     this.sym.acknowledgeRisk();
     if (this.wasPlayingBeforeRisk) this.sym.play();
@@ -293,23 +297,39 @@ export class PlayComponent {
   get isRiskAvailable(): boolean { return this.sym.isRiskAvailable(); }
 
   private initChart(): void {
-    const pts = this.config.weeksOnGant * this.config.chartPointsPerWeek;
-
     // Rebuild PV and labels at full resolution — mutate in place to keep the
     // same array references the chart is bound to.
     this.pvData.length = 0;
     this.labels.length = 0;
-    for (let i = 0; i < pts; i++) {
-      const time = i / this.config.chartPointsPerWeek;
-      this.pvData.push(Math.round(this.sym.calculateScenarioPv(time)));
-      this.labels.push(Number.isInteger(time) ? `W${time}` : '');
-    }
+    this.appendPvSegment(0, this.getEvmPointCount());
 
     // EV and AC start at a single point (0) and grow via push() each tick.
     this.evData.length = 0;
     this.acData.length = 0;
     this.evData.push(0);
     this.acData.push(0);
+    this.chart?.update();
+  }
+
+  private getEvmPointCount(): number {
+    return this.sym.getGanttSpanWeeks() * this.config.chartPointsPerWeek;
+  }
+
+  /**
+   * Extends PV/labels when the project grows past the initial week span (e.g. longer deadline).
+   */
+  private ensureEvmChartPointCapacity(): void {
+    const need = this.getEvmPointCount();
+    if (this.pvData.length >= need) return;
+    this.appendPvSegment(this.pvData.length, need);
+  }
+
+  private appendPvSegment(from: number, toExclusive: number): void {
+    for (let i = from; i < toExclusive; i++) {
+      const time = i / this.config.chartPointsPerWeek;
+      this.pvData.push(Math.round(this.sym.calculateScenarioPv(time)));
+      this.labels.push(Number.isInteger(time) ? `W${time}` : '');
+    }
     this.chart?.update();
   }
 }

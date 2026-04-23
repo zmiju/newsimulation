@@ -96,6 +96,12 @@ export class SymulatorService {
 
   // ── Reactive public state ───────────────────────────────────────────────
   private readonly _scenario = signal<Scenario | null>(null);
+  /**
+   * Bumped on every `setScenario` so `simulation()` signal consumers update even
+   * though we mutate the same `symulation` object in place (shallow _scenario
+   * spreads keep the same ref to `scenario.symulation`).
+   */
+  private readonly _simStateRev = signal(0);
   private readonly _isPlaying = signal(false);
   private readonly _isStartedNotCompleted = signal(false);
   private readonly _pendingRisk = signal<FiredRisk | null>(null);
@@ -103,7 +109,10 @@ export class SymulatorService {
   readonly scenario = this._scenario.asReadonly();
   readonly isPlaying = this._isPlaying.asReadonly();
   readonly isStartedNotCompleted = this._isStartedNotCompleted.asReadonly();
-  readonly simulation = computed(() => this._scenario()?.symulation as SimulationState | undefined);
+  readonly simulation = computed(() => {
+    this._simStateRev();
+    return this._scenario()?.symulation as SimulationState | undefined;
+  });
   /** The fired risk awaiting user acknowledgement (drives the popup). */
   readonly pendingRisk = this._pendingRisk.asReadonly();
 
@@ -112,9 +121,16 @@ export class SymulatorService {
   private lastLevelNmb = 0;
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
+  /** Publishes scenario; bumps revision so `simulation()` and the Gantt re-run on in-place `symulation` updates. */
+  private setScenario(scenario: Scenario | null): void {
+    this._simStateRev.update((n) => n + 1);
+    this._scenario.set(scenario);
+  }
+
   // ── Scenario loading ────────────────────────────────────────────────────
 
   async startScenario(id: number): Promise<void> {
+    this.scenarios.invalidateBundleCache();
     const scenario = await firstValueFrom(this.scenarios.getScenarioById(id));
     if (!scenario) throw new Error(`Scenario ${id} not found`);
     this.scenarioTemplate = scenario;
@@ -122,9 +138,14 @@ export class SymulatorService {
 
     const restored = this.users.getSavedPlan(id);
     const live = this._scenario();
-    if (restored && live?.plan && restored.tasks.length === live.plan.tasks.length) {
-      live.plan = restored;
-      this._scenario.set({ ...live });
+    if (restored && live?.plan) {
+      if (live.type === 'training' && restored.tasks.length === live.plan.tasks.length) {
+        live.plan = restored;
+        this.setScenario({ ...live });
+      } else if (restored.counterRisksBought?.length) {
+        live.plan!.counterRisksBought = [...restored.counterRisksBought];
+        this.setScenario({ ...live });
+      }
     }
   }
 
@@ -205,7 +226,7 @@ export class SymulatorService {
     scenario.plan!.deadline = sim.deadline;
     scenario.symulation = sim as unknown as typeof scenario.symulation;
 
-    this._scenario.set(scenario);
+    this.setScenario(scenario);
 
     this.recalculatePlanPV();
     this.recalculatePlanDeadline();
@@ -230,7 +251,7 @@ export class SymulatorService {
       plan.deadline = 0;
     }
 
-    this._scenario.set({ ...live });
+    this.setScenario({ ...live });
   }
 
   // ── Recalc helpers ──────────────────────────────────────────────────────
@@ -253,14 +274,47 @@ export class SymulatorService {
       const cr = scenario.counterRisks?.[riskId];
       if (cr?.cost) plan.counterRisksCost += cr.cost;
     });
-    this._scenario.set({ ...scenario });
+    this.setScenario({ ...scenario });
   }
 
   recalculatePlanDeadline(): void {
     const scenario = this._scenario();
     if (!scenario?.plan) return;
     scenario.plan.deadline = this.getTasksTime(scenario.plan.tasks as unknown as SimTask[]);
-    this._scenario.set({ ...scenario });
+    this.setScenario({ ...scenario });
+  }
+
+  /**
+   * Gantt and EVM chart horizontal span (weeks): at least `config.weeksOnGant` (15),
+   * widened to fit the plan deadline and current simulation time.
+   */
+  getGanttSpanWeeks(): number {
+    const scenario = this._scenario();
+    if (!scenario) return this.config.weeksOnGant;
+    const sim = scenario.symulation as SimulationState | undefined;
+    const fromPlan =
+      scenario.plan?.deadline ??
+      (scenario as unknown as { deadline?: number }).deadline ??
+      0;
+    const time = sim?.time ?? 0;
+    return Math.max(this.config.weeksOnGant, Math.ceil(fromPlan), Math.ceil(time), 1);
+  }
+
+  /** Copy runtime `sim.tasks` into `plan.tasks` (start/end/effort) and refresh PV. */
+  private syncPlanTasksFromSim(): void {
+    const scenario = this._scenario();
+    if (!scenario?.plan?.tasks || !scenario.symulation) return;
+    const sim = scenario.symulation as unknown as SimulationState;
+    for (const t of sim.tasks) {
+      const pt = scenario.plan!.tasks[t.id] as unknown as { start: number; effort: number; end?: number };
+      if (pt) {
+        pt.start = t.start;
+        pt.effort = t.effort;
+        pt.end = t.end;
+      }
+    }
+    this.recalculatePlanPV();
+    scenario.plan.deadline = this.getTasksTime(scenario.plan.tasks as unknown as SimTask[]);
   }
 
   private getTasksTime(tasks: SimTask[]): number {
@@ -283,7 +337,7 @@ export class SymulatorService {
     if (task.completed > 0) {
       this.addEffortToTask(task, this.config.switchingPenalty);
     }
-    this._scenario.set({ ...this._scenario()! });
+    this.setScenario({ ...this._scenario()! });
   }
 
   unassignResourceFromTask(resourceId: number, taskId: number): void {
@@ -291,7 +345,7 @@ export class SymulatorService {
     if (!sim) return;
     const task = sim.tasks[taskId];
     task.resourcesAssigned = task.resourcesAssigned.filter((r) => r.id !== resourceId);
-    this._scenario.set({ ...this._scenario()! });
+    this.setScenario({ ...this._scenario()! });
   }
 
   // ── Playback controls ───────────────────────────────────────────────────
@@ -317,7 +371,7 @@ export class SymulatorService {
 
     scenario.result = undefined;
     const sim = scenario.symulation as unknown as SimulationState;
-    sim.pv = 0; sim.ev = 0; sim.ac = 0; sim.deadline = 0;
+    sim.pv = 0; sim.ev = 0; sim.ac = 0;
     sim.time = 0; sim.turn = 0; sim.bac = 0; sim.spi = 1;
     sim.risksFired = [];
 
@@ -331,13 +385,22 @@ export class SymulatorService {
       task.effort = src.effort;
     });
 
+    const projectDeadline = this.getTasksTime(scenario.tasks as unknown as SimTask[]);
+    sim.deadline = projectDeadline;
+    if (scenario.plan) {
+      scenario.plan.deadline = this.getTasksTime(scenario.plan.tasks as unknown as SimTask[]);
+      (scenario as unknown as Record<string, number>)['deadline'] = scenario.plan.deadline;
+    }
+
     sim.resources.forEach((r) => {
       r.motivation = this.config.motivationMax;
       r.turnCorrect = 0;
       r.gone = 0;
     });
 
-    this._scenario.set({ ...scenario });
+    this.syncPlanTasksFromSim();
+    sim.bac = (scenario.plan as unknown as Record<string, number>)['pv'] ?? 0;
+    this.setScenario({ ...scenario });
   }
 
   restart(): void { this.prepareScenario(); }
@@ -360,6 +423,16 @@ export class SymulatorService {
 
     sim.tasks.forEach((task) => {
       this.calculateTaskCompletion(task);
+    });
+
+    // Project-time slip for every not-yet-done task (including SS/FS-blocked ones):
+    // must run after the work pass; if it lived only inside calculateTaskCompletion,
+    // tasks that return early on dependency blocks would never slide on the schedule.
+    sim.tasks.forEach((task) => {
+      this.applyIdleScheduleSlip(task);
+    });
+
+    sim.tasks.forEach((task) => {
       task.pv = this.calculateTaskPv(task);
       task.ev = this.calculateTaskEv(task);
       scenarioEv += task.ev;
@@ -376,9 +449,17 @@ export class SymulatorService {
     sim.ev = this.calculateSymulationEv();
     sim.ac = this.calculateSymulationAc();
     sim.pv = this.calculateScenarioPv();
-    sim.bac = sim.pv;
+    // BAC is fixed at scenario start (prepareScenario) — do not overwrite with current PV.
     sim.spi = sim.pv ? sim.ev / sim.pv : 1;
     sim.cpi = sim.ac ? sim.ev / sim.ac : 1;
+
+    // Numeric closure: per-tick work + addEffortToTask can leave completed slightly
+    // below effort; without this, isCompleted may never flip and the game never ends.
+    for (const task of sim.tasks) {
+      if (!task.isCompleted && task.effort > 0 && task.completed + 1e-3 >= task.effort) {
+        task.isCompleted = true;
+      }
+    }
 
     if (this.checkIsGameOver()) {
       this._isStartedNotCompleted.set(false);
@@ -397,7 +478,7 @@ export class SymulatorService {
       }
     }
 
-    this._scenario.set({ ...scenario });
+    this.setScenario({ ...scenario });
   }
 
   // ── Game-over & scoring ─────────────────────────────────────────────────
@@ -408,20 +489,10 @@ export class SymulatorService {
     const sim = scenario.symulation as unknown as SimulationState;
     const deadline = (scenario as unknown as Record<string, number>)['deadline'] ?? sim.deadline;
 
-    if (sim.time > deadline * this.config.maxTimeFactor) {
-      scenario.result = {
-        success: false, points: 0,
-        spi: sim.spi, cpi: sim.cpi,
-        pv: sim.pv, ev: sim.ev, ac: sim.ac, bac: sim.bac,
-        budgetPlanned: 0, budgetActual: sim.ac, budgetProject: 0, budgetRisks: 0,
-        timePlanned: deadline, timeActual: sim.time,
-      };
-      (scenario.result as unknown as Record<string, unknown>)['failed'] = true;
-      (scenario.result as unknown as Record<string, unknown>)['reason'] = 'time exceeded';
-      return true;
-    }
-
-    const allCompleted = sim.tasks.every((t) => t.isCompleted);
+    // Win first: if every task is done, end successfully even when calendar time
+    // is past the planned window (and avoids ordering bugs with a deadline of 0).
+    const allCompleted =
+      sim.tasks.length > 0 && sim.tasks.every((t) => t.isCompleted);
     if (allCompleted) {
       scenario.result = {
         success: true,
@@ -435,6 +506,22 @@ export class SymulatorService {
       (scenario.result as unknown as Record<string, unknown>)['reason'] = 'completed';
       (scenario.result as unknown as Record<string, unknown>)['level']  = scenario.id;
       (scenario.result as unknown as Record<string, unknown>)['time']   = this.getTasksTime(sim.tasks);
+      return true;
+    }
+
+    if (
+      deadline > 0 &&
+      sim.time > deadline * this.config.maxTimeFactor
+    ) {
+      scenario.result = {
+        success: false, points: 0,
+        spi: sim.spi, cpi: sim.cpi,
+        pv: sim.pv, ev: sim.ev, ac: sim.ac, bac: sim.bac,
+        budgetPlanned: 0, budgetActual: sim.ac, budgetProject: 0, budgetRisks: 0,
+        timePlanned: deadline, timeActual: sim.time,
+      };
+      (scenario.result as unknown as Record<string, unknown>)['failed'] = true;
+      (scenario.result as unknown as Record<string, unknown>)['reason'] = 'time exceeded';
       return true;
     }
     return false;
@@ -506,6 +593,9 @@ export class SymulatorService {
     if (task.start > sim.time) return;
     // SS constraint: block this task until every SS predecessor has started.
     if (this.isBlockedBySSPredecessor(task, sim)) return;
+    // FS: no work until every FS predecessor has finished (finish-to-start), so a
+    // low calendar `start` in the file does not let the task outpace its preds.
+    if (this.isBlockedByFSPredecessor(task, sim)) return;
 
     task.change = 0;
     task.resourcesAssigned.forEach((resource) => {
@@ -551,8 +641,19 @@ export class SymulatorService {
       task.completed += toBeAdded;
       this.addEffortToTask(task, penalty);
     }
+  }
 
+  /**
+   * Advance a task's start/end when simulated time has run past where progress
+   * should be (same as the old tail of calculateTaskCompletion). Runs for all
+   * incomplete tasks so unstaffed or dependency-blocked rows still accrue delay.
+   */
+  private applyIdleScheduleSlip(task: SimTask): void {
+    const scenario = this._scenario();
+    if (!scenario?.symulation) return;
+    const sim = scenario.symulation as unknown as SimulationState;
     if (task.isCompleted) return;
+    if (task.start > sim.time) return;
     const change = (sim.time - task.completed) - task.start;
     if (change > 0) this.moveTaskForward(task, change);
   }
@@ -570,6 +671,21 @@ export class SymulatorService {
       if (dep.type !== 'SS') return false;
       const pred = sim.tasks[dep.id];
       return pred.completed === 0;
+    });
+  }
+
+  /**
+   * FS (default) links: block until the predecessor is fully completed, so
+   * scheduled start times can be “as early as other parallel work” without
+   * depending on a late `start` week in the JSON to fake the constraint.
+   */
+  private isBlockedByFSPredecessor(task: SimTask, sim: SimulationState): boolean {
+    const scenario = this._scenario()!;
+    const taskDef = scenario.tasks[task.id];
+    return taskDef.dependsOn.some((dep) => {
+      const t = dep.type ?? 'FS';
+      if (t !== 'FS') return false;
+      return !sim.tasks[dep.id].isCompleted;
     });
   }
 
@@ -619,17 +735,41 @@ export class SymulatorService {
             // Not yet started — shift the whole task so the end aligns.
             this.moveTaskForward(sub, -gap);
           }
+        } else if (gap > 0 && change < 0
+          && Math.round(gap * 10000) === -Math.round(change * 10000)) {
+          // Symmetric acceleration: predecessor's end just moved earlier and
+          // the successor was tightly coupled to it (its end matched the
+          // predecessor's previous end → current gap === -change). Pull the
+          // successor back by the same amount, mirroring the delay branch.
+          if (sub.start <= sim.time) {
+            this.addEffortToTask(sub, change);
+          } else {
+            this.moveTaskForward(sub, change);
+          }
         }
 
       } else {
-        // FS (default): successor start must be ≥ predecessor end
-        const subchange = sub.start - task.end;
-        if (Math.round(change * 10000) === -Math.round(subchange * 10000)) {
-          this.moveTaskForward(sub, change);
-        } else if (subchange > change) {
-          return;
-        } else if (subchange < 0) {
-          this.moveTaskForward(sub, -subchange);
+        // FS (default): successor.start ≥ predecessor.end.
+        if (sub.isCompleted) return;
+        const needPush = task.end - sub.start;
+        if (needPush > 1e-5) {
+          // Predecessor end overlaps or crosses successor start — push forward.
+          this.moveTaskForward(sub, needPush);
+        } else if (needPush < -1e-5 && sub.start > sim.time) {
+          // Predecessor finished ahead of schedule and successor hasn't started yet.
+          // Pull the successor back to the latest end among ALL its FS predecessors
+          // so a merge task (multiple predecessors) never moves before its slowest
+          // predecessor finishes.
+          const subDef = scenario.tasks[sub.id];
+          const latestPredEnd = subDef.dependsOn.reduce((max, dep) => {
+            if ((dep.type ?? 'FS') !== 'FS') return max;
+            return Math.max(max, sim.tasks[dep.id].end);
+          }, 0);
+          const targetStart = Math.max(latestPredEnd, sim.time);
+          const pullDelta = targetStart - sub.start;
+          if (pullDelta < -1e-5) {
+            this.moveTaskForward(sub, pullDelta);
+          }
         }
       }
     });
@@ -648,6 +788,8 @@ export class SymulatorService {
     let count = 0;
     sim.tasks.forEach((task) => {
       if (task.isCompleted || task.start > sim.time) return;
+      if (this.isBlockedBySSPredecessor(task, sim)) return;
+      if (this.isBlockedByFSPredecessor(task, sim)) return;
       task.resourcesAssigned.forEach((r) => { if (r.name === resource.name) count++; });
     });
     return count;
@@ -656,6 +798,29 @@ export class SymulatorService {
   /** True when the resource is allocated to more than one active task. */
   isResourceOverloaded(resource: SimResource): boolean {
     return this.getNumberOfTasksForResource(resource) > 1;
+  }
+
+  /**
+   * The resource is not working on any active task: nothing started & incomplete, per
+   * {@link getNumberOfTasksForResource}. True when unassigned, only on completed work,
+   * or only on not-yet-started tasks — so finishing a task flags the resource as free again.
+   */
+  isResourceUnallocated(resource: SimResource): boolean {
+    return this.getNumberOfTasksForResource(resource) === 0;
+  }
+
+  /** At least one resource is currently idle (no active task work). */
+  hasUnallocatedResources(): boolean {
+    const sim = this.simulation();
+    if (!sim?.resources.length) return false;
+    return sim.resources.some((r) => this.isResourceUnallocated(r));
+  }
+
+  /** At least one resource is on more than one active task ({@link isResourceOverloaded}). */
+  hasMultitaskingResources(): boolean {
+    const sim = this.simulation();
+    if (!sim?.resources.length) return false;
+    return sim.resources.some((r) => this.isResourceOverloaded(r));
   }
 
   /**
@@ -689,6 +854,8 @@ export class SymulatorService {
     return sim.tasks.some((task) =>
       !task.isCompleted &&
       task.start <= sim.time &&
+      !this.isBlockedBySSPredecessor(task, sim) &&
+      !this.isBlockedByFSPredecessor(task, sim) &&
       task.resourcesAssigned.length > 1 &&
       task.resourcesAssigned.some((r) => r.name === resource.name)
     );
@@ -713,6 +880,8 @@ export class SymulatorService {
     const task = sim.tasks[taskId];
     if (!task || task.isCompleted) return 0;
     if (task.start > sim.time) return 0;
+    if (this.isBlockedBySSPredecessor(task, sim)) return 0;
+    if (this.isBlockedByFSPredecessor(task, sim)) return 0;
     let count = 0;
     task.resourcesAssigned.forEach((r) => {
       if ((r.gone ?? 0) <= 0) count++;
@@ -769,7 +938,7 @@ export class SymulatorService {
     const sim = scenario.symulation as unknown as SimulationState;
     sim.risksFired[sim.nextRisk!] = true;
     sim.risk = newRisk;
-    this._scenario.set({ ...scenario });
+    this.setScenario({ ...scenario });
     this._pendingRisk.set(newRisk);
     return newRisk;
   }
@@ -785,7 +954,7 @@ export class SymulatorService {
     this.applyFiredRisk(risk);
     const sim = scenario.symulation as unknown as SimulationState;
     sim.risk = undefined;
-    this._scenario.set({ ...scenario });
+    this.setScenario({ ...scenario });
     this._pendingRisk.set(null);
   }
 
@@ -816,7 +985,7 @@ export class SymulatorService {
     if (!scenario?.symulation) return;
     const sim = scenario.symulation as unknown as SimulationState;
     sim.risk = risk;
-    this._scenario.set({ ...scenario });
+    this.setScenario({ ...scenario });
   }
 
   /** Resolve the risk's target entity and fill in its display strings. */

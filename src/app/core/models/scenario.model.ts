@@ -55,6 +55,8 @@ export interface Scenario {
 
   tasks: Task[];
   resources: Resource[];
+  /** When present (e.g. random scenarios with >5 tasks), Gantt shows summary rows. */
+  taskGroups?: { name: string; taskIds: number[] }[];
   risks?: number[];
   counterRisks?: CounterRisk[];
 

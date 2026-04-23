@@ -124,6 +124,9 @@
   "SIMULATION_ac": "AC",
   "SIMULATION_ev": "EV",
   "SIMULATION_resource_overloaded": "Przeciążony — zasób przypisany do wielu zadań (multitasking)",
+  "SIMULATION_resource_unallocated": "Wolny — nie pracuje aktywnie nad zadaniem. Przeciągnij na zadanie na wykresie Gantta.",
+  "SIMULATION_unallocated_resources_alert": "Co najmniej jeden członek zespołu jest wolny (nieprzypisany, czeka lub ukończył ostatnie zadanie). Przypisz go na wykresie poniżej.",
+  "SIMULATION_multitasking_resources_alert": "Co najmniej jeden członek zespołu ma jednocześnie kilka aktywnych zadań (multitasking). To obniża wydajność — jeśli możesz, popraw przypisania na wykresie poniżej.",
   "SIMULATION_task_crashing": "Zadanie kraszowane — przypisano wiele zasobów (crashing)",
   "SIMULATION_motivation": "Motywacja",
 
@@ -136,6 +139,10 @@
   "SUMMARY_cpi_under": "Poniżej budżetu",
   "SUMMARY_cpi_slight": "Lekkie przekroczenie",
   "SUMMARY_cpi_over": "Przekroczony budżet",
+  "SUMMARY_duration_label": "CZAS",
+  "SUMMARY_duration_on_time": "W terminie",
+  "SUMMARY_duration_slight": "Lekkie opóźnienie",
+  "SUMMARY_duration_late": "Przekroczony czas",
 
   "GANT_task": "Zadanie",
   "GANT_week": "Tydzień",
@@ -147,7 +154,7 @@
   "RANKING_col_nickname": "Gracz",
   "RANKING_col_country": "Kraj",
   "RANKING_col_score": "Wynik",
-  "RANKING_col_date": "Data",
+  "RANKING_col_date": "Data i godzina",
 
   "WELCOME_heading": "Witaj w symulatorze projektów Octigo",
   "WELCOME_goal_title": "Cel symulatora",
@@ -168,5 +175,8 @@
   "WELCOME_feature_modes_label": "Wiele trybów",
   "WELCOME_feature_modes_desc": "Lekcje ze studium przypadku, turnieje na wspólnych scenariuszach oraz tryb losowy w trzech poziomach trudności.",
   "WELCOME_modes_title": "Tryby rozgrywki",
-  "WELCOME_modes_p": "Poniżej możesz wybrać jeden z trzech trybów rozgrywki. W trybie lekcji możesz rozpocząć od zapoznania się ze studium przypadku projektu, a następnie go zaplanować i zrealizować. W trybie turnieju możesz wybrać jeden z już zaplanowanych projektów i go zrealizować, a następnie porównać swoje wyniki do innych w rankingu. W trybie losowym symulator wygeneruje ci losowy projekt na jednym z trzech poziomów trudności, który będziesz musiał poprowadzić."
+  "WELCOME_modes_p": "Poniżej możesz wybrać jeden z trzech trybów rozgrywki. W trybie lekcji możesz rozpocząć od zapoznania się ze studium przypadku projektu, a następnie go zaplanować i zrealizować. W trybie turnieju możesz wybrać jeden z już zaplanowanych projektów i go zrealizować, a następnie porównać swoje wyniki do innych w rankingu. W trybie losowym symulator wygeneruje ci losowy projekt na jednym z trzech poziomów trudności, który będziesz musiał poprowadzić.",
+  "GANTT_phase_label": "{{name}}: {{n}}%",
+  "GANTT_phase_expand": "Pokaż podzadania",
+  "GANTT_phase_collapse": "Ukryj podzadania"
 }

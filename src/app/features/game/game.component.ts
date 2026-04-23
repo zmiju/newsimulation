@@ -129,7 +129,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.updateTitleDescription();
     this.resetChart();
     this.translate.get('GAME_week').subscribe((label) => {
-      for (let i = 1; i <= this.config.weeksOnGant; i++) {
+      const w = this.sym.getGanttSpanWeeks();
+      for (let i = 1; i <= w; i++) {
         this.chart.labels[i * this.config.chartPointsPerWeek] = `${label} ${i}`;
       }
     });
@@ -150,8 +151,9 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   resetChart(): void {
+    const w = this.sym.getGanttSpanWeeks();
     let i = 0;
-    for (let time = 0; time < this.config.weeksOnGant; time += 1 / this.config.chartPointsPerWeek) {
+    for (let time = 0; time < w; time += 1 / this.config.chartPointsPerWeek) {
       const pv = Math.round(this.sym.calculateScenarioPv(time));
       this.chart.data[0][i] = pv;
       this.chart.data[1][i] = 0;

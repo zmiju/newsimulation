@@ -224,7 +224,7 @@ body.grabbing * {
 /* ── Slide transitions ─────────────────────────────────────────────────────── */
 /* Use `overflow: clip` instead of `overflow: hidden` so the container does not
    become a scroll container — otherwise `position: sticky` on descendants
-   (e.g. the simulation top bar on mobile) resolves to this non-scrolling
+   (e.g. the simulation top bar) resolves to this non-scrolling
    ancestor and stops working. */
 .slide-container { overflow: clip; }
 
@@ -371,6 +371,11 @@ body.grabbing * {
   border-radius: 10px;
   padding: 16px 20px;
   margin-bottom: 20px;
+  /* Sticky so Play/Pause stay reachable while scrolling the chart / Gantt on all viewports */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
 .metric-item {
@@ -466,6 +471,13 @@ body.grabbing * {
     0 2px 8px rgba(220, 38, 38, 0.35);
 }
 
+.resource-chip--unallocated {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px #16a34a,
+    0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
 .resource-motivation {
   margin-top: 4px;
   width: 100%;
@@ -517,6 +529,27 @@ body.grabbing * {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0;
+}
+
+.resource-unallocated-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: #16a34a;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  pointer-events: auto;
+  cursor: help;
 }
 
 @keyframes resource-overload-pulse {
@@ -862,17 +895,11 @@ html, body {
     width: 100%;
   }
 
-  /* Simulation top bar becomes stacked, metrics scroll horizontally.
-     Pin it to the top of the viewport so the Play/Pause (start) button
-     stays reachable while the user scrolls the Gantt / chart on mobile. */
+  /* Simulation top bar: tighter padding; metrics scroll horizontally. Sticky
+     bar is defined on `.simulation-top` for all breakpoints. */
   .simulation-top {
     padding: 12px;
     margin-bottom: 14px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: #f8fafc;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
   }
 
   .simulation-top .d-flex.justify-content-between {

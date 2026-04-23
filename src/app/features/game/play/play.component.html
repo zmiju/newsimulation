@@ -74,6 +74,11 @@
               &#9646;&#9646; {{ 'SIMULATION_pause' | translate }}
             </button>
           }
+          @if (s.isRandom) {
+            <button class="btn btn-outline-primary btn-sm btn-animated" (click)="generateNew()">
+              {{ 'SIMULATION_generate_new_random' | translate }}
+            </button>
+          }
           <button class="btn btn-outline-secondary btn-sm btn-animated" (click)="reset()">
             {{ 'SIMULATION_reset' | translate }}
           </button>
@@ -100,6 +105,20 @@
 
       <!-- Resource palette -->
       <div class="palette-wrap" @paletteEnter>
+        @if (sym.hasUnallocatedResources() || sym.hasMultitaskingResources()) {
+          <div class="d-flex flex-column gap-2 mb-2">
+            @if (sym.hasUnallocatedResources()) {
+              <div class="alert alert-success py-2 px-3 mb-0" role="status">
+                {{ 'SIMULATION_unallocated_resources_alert' | translate }}
+              </div>
+            }
+            @if (sym.hasMultitaskingResources()) {
+              <div class="alert alert-warning py-2 px-3 mb-0" role="status">
+                {{ 'SIMULATION_multitasking_resources_alert' | translate }}
+              </div>
+            }
+          </div>
+        }
         <div cdkDropList
              [cdkDropListData]="sim.resources"
              cdkDropListOrientation="horizontal"
@@ -109,6 +128,7 @@
             <div cdkDrag [cdkDragData]="r"
                  class="resource-chip badge"
                  [class.resource-chip--overloaded]="sym.isResourceOverloaded(r)"
+                 [class.resource-chip--unallocated]="sym.isResourceUnallocated(r)"
                  [style.background]="r.color">
               {{ r.name }}
               <small style="opacity:0.75;">({{ r.speed | number:'1.1-1' }}x, {{ r.cost | number:'1.1-1' }}{{ 'MAIN_currency' | translate }})</small>
@@ -120,6 +140,13 @@
                      [class.resource-motivation__bar--critical]="r.motivation < 0.25"
                      [style.width.%]="sym.getResourceMotivation(r) * 100"></div>
               </div>
+              @if (sym.isResourceUnallocated(r)) {
+                <span class="resource-unallocated-badge"
+                      [title]="'SIMULATION_resource_unallocated' | translate"
+                      aria-label="unallocated">
+                  &#9675;
+                </span>
+              }
               @if (sym.isResourceOverloaded(r)) {
                 <span class="resource-overload-badge"
                       [title]="('SIMULATION_resource_overloaded' | translate) + ' (' + sym.getNumberOfTasksForResource(r) + ')'"
@@ -164,7 +191,7 @@
     }
 
     <!-- Risk popup (inline modal). Pauses simulation while open, applies impact on close. -->
-    @if (pendingRisk; as risk) {
+    @if (sym.pendingRisk(); as risk) {
       <div class="risk-popup-backdrop" (click)="closeRiskPopup()" @riskBackdrop></div>
       <div class="risk-popup" role="dialog" aria-modal="true" @riskPopup>
         <div class="risk-popup__header">

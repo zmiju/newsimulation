@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, shareReplay, map, of } from 'rxjs';
 
 import { ConfigService } from './config.service';
@@ -25,14 +25,33 @@ export class ScenarioService {
   private readonly config = inject(ConfigService);
 
   private scenarios$?: Observable<Scenario[]>;
+  /** Bumped on each invalidate; appended to the JSON URL so the browser/CDN can’t return a stale `scenario.json`. */
+  private bundleFetchSeq = 0;
 
   readonly risks        = signal<Risk[]>([]);
   readonly counterRisks = signal<CounterRisk[]>([]);
 
+  /**
+   * Clears the in-memory bundle so the next `loadScenarios()` hits the network
+   * again. `shareReplay(1)` otherwise keeps the first response for the app
+   * lifetime — a common reason edits to `scenario.json` “don’t show” until a
+   * full reload, and a footgun in dev (HMR keeps the service singleton).
+   */
+  invalidateBundleCache(): void {
+    this.scenarios$ = undefined;
+    this.bundleFetchSeq++;
+  }
+
   /** Load-and-cache the full scenario bundle. */
   loadScenarios(): Observable<Scenario[]> {
     if (!this.scenarios$) {
-      this.scenarios$ = this.http.get<ScenarioBundle>(this.config.scenarioUrl).pipe(
+      const sep = this.config.scenarioUrl.includes('?') ? '&' : '?';
+      const url = `${this.config.scenarioUrl}${sep}t=${this.bundleFetchSeq}`;
+      const headers = new HttpHeaders({
+        'Cache-Control': 'no-cache',
+        Pragma:         'no-cache',
+      });
+      this.scenarios$ = this.http.get<ScenarioBundle>(url, { headers }).pipe(
         map((bundle) => {
           const scenarios = this.normalizeScenarios(bundle.projects);
           this.risks.set(this.applyIds(bundle.risks ?? []));
@@ -84,15 +103,13 @@ export class ScenarioService {
     return items;
   }
 
-  /** Convert any legacy `number[]` dependency entries to `Dependency` objects. */
+  /** Convert any legacy `number[]` / string-number dependency entries to `Dependency` objects. */
   private normalizeDependencies(tasks: Task[]): void {
+    const toDep = (d: number | string | Dependency): Dependency =>
+      (typeof d === 'number' || typeof d === 'string') ? { id: Number(d), type: 'FS' } : d;
     tasks.forEach((task) => {
-      task.dependants = (task.dependants as unknown as Array<number | Dependency>).map(
-        (d): Dependency => typeof d === 'number' ? { id: d, type: 'FS' } : d,
-      );
-      task.dependsOn = (task.dependsOn as unknown as Array<number | Dependency>).map(
-        (d): Dependency => typeof d === 'number' ? { id: d, type: 'FS' } : d,
-      );
+      task.dependants = (task.dependants as unknown as Array<number | string | Dependency>).map(toDep);
+      task.dependsOn  = (task.dependsOn  as unknown as Array<number | string | Dependency>).map(toDep);
     });
   }
 

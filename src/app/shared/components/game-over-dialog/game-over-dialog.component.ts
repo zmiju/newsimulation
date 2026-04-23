@@ -186,6 +186,21 @@ import { ScenarioResult } from '@core/models/scenario.model';
                  [style.background]="indexBarColor(result.cpi)"></div>
           </div>
         </div>
+
+        <div class="stat-card stat-card--index stat-card--dur"
+             [class.stat-card--positive]="durationRatio() <= 100"
+             [class.stat-card--negative]="durationRatio() > 105">
+          <span class="stat-card__label">{{ 'SUMMARY_duration_label' | translate }}</span>
+          <span class="stat-card__value">{{ durationRatio() | number:'1.0-0' }}%</span>
+          <span class="stat-card__hint">
+            {{ durationVerdict() | translate }}
+          </span>
+          <div class="stat-card__bar">
+            <div class="stat-card__bar-fill"
+                 [style.width.%]="durationBarWidth()"
+                 [style.background]="durationBarColor()"></div>
+          </div>
+        </div>
       </div>
 
       <div class="summary-secondary">
@@ -392,13 +407,22 @@ import { ScenarioResult } from '@core/models/scenario.model';
         font-size: 26px;
       }
       .stat-card--spi,
-      .stat-card--cpi {
+      .stat-card--cpi,
+      .stat-card--dur {
         grid-column: span 3 / span 3;
       }
       @media (min-width: 420px) {
-        .stat-card--spi { grid-column: span 2 / span 2; }
+        .stat-card--spi { grid-column: span 1 / span 1; }
         .stat-card--cpi { grid-column: span 1 / span 1; }
+        .stat-card--dur { grid-column: span 1 / span 1; }
       }
+
+      .stat-card--spi { border-top: 3px solid #f59e0b; }
+      .stat-card--spi .stat-card__value { color: #b45309; }
+      .stat-card--cpi { border-top: 3px solid #0ea5e9; }
+      .stat-card--cpi .stat-card__value { color: #0369a1; }
+      .stat-card--dur { border-top: 3px solid #6366f1; }
+      .stat-card--dur .stat-card__value { color: #4338ca; }
 
       .stat-card--positive {
         background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%);
@@ -526,5 +550,36 @@ export class GameOverDialogComponent {
     if (v >= 1)    return 'SUMMARY_cpi_under';
     if (v >= 0.95) return 'SUMMARY_cpi_slight';
     return 'SUMMARY_cpi_over';
+  }
+
+  /** Actual duration as % of baseline (e.g. 120 means 20% over the plan). */
+  durationRatio(): number {
+    const planned = this.result.timePlanned;
+    const actual  = this.result.timeActual;
+    if (!planned || Number.isNaN(planned)) return 0;
+    return (actual / planned) * 100;
+  }
+
+  durationVerdict(): string {
+    const v = this.durationRatio();
+    if (v <= 100) return 'SUMMARY_duration_on_time';
+    if (v <= 105) return 'SUMMARY_duration_slight';
+    return 'SUMMARY_duration_late';
+  }
+
+  /** Map duration ratio (%) to a 0–100% bar; 100% (on plan) sits in the middle. */
+  durationBarWidth(): number {
+    const v = this.durationRatio();
+    if (!v) return 0;
+    const clamped = Math.max(0, Math.min(200, v));
+    return (clamped / 200) * 100;
+  }
+
+  durationBarColor(): string {
+    const v = this.durationRatio();
+    if (!v) return '#94a3b8';
+    if (v <= 100) return 'linear-gradient(90deg, #22c55e, #16a34a)';
+    if (v <= 105) return 'linear-gradient(90deg, #f59e0b, #d97706)';
+    return 'linear-gradient(90deg, #ef4444, #b91c1c)';
   }
 }

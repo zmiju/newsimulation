@@ -72,7 +72,48 @@ export class ScenarioGeneratorService {
     }
 
     this.normalizeStartTime(scenario);
+    this.assignRandomTaskGroups(scenario);
     return scenario;
+  }
+
+  /**
+   * If there are more than 5 tasks, partition them randomly into one or more
+   * groups with at least 3 tasks each (MS Project–style summary groupings).
+   * Labels: Phase 1, Phase 2, …
+   */
+  private assignRandomTaskGroups(scenario: Scenario): void {
+    const n = scenario.tasks.length;
+    if (n <= 5) return;
+    const maxP = Math.floor(n / 3);
+    if (maxP < 1) return;
+    const p = this.randomInt({ min: 1, max: maxP });
+    const partSizes = this.randomPartitionAtLeast3(n, p);
+    const ids = scenario.tasks.map((t) => t.id);
+    this.shuffleInPlace(ids);
+    let off = 0;
+    scenario.taskGroups = partSizes.map((size, i) => {
+      const chunk = ids.slice(off, off + size).sort((a, b) => a - b);
+      off += size;
+      return { name: `Phase ${i + 1}`, taskIds: chunk };
+    });
+  }
+
+  /** Integers s.t. each part ≥ 3 and they sum to n (requires n ≥ 3p). */
+  private randomPartitionAtLeast3(n: number, p: number): number[] {
+    const base = 3 * p;
+    const slack = n - base;
+    const parts = new Array(p).fill(3);
+    for (let k = 0; k < slack; k++) {
+      parts[Math.floor(Math.random() * p)]++;
+    }
+    return parts;
+  }
+
+  private shuffleInPlace<T>(arr: T[]): void {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────
