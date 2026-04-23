@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  adminEmails: ['zmigrodzki4@gmail.com'],
   firebase: {
     apiKey: "AIzaSyCF3FAqgCvaHOaLWkHLVuHEM5igLIPokMk",
     authDomain: "agile-game.firebaseapp.com",

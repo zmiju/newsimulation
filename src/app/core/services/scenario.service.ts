@@ -1,8 +1,12 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, shareReplay, map, of } from 'rxjs';
+import { Observable, shareReplay, map, of, from, switchMap } from 'rxjs';
+import {
+  collection, getDocs, query, orderBy, getDoc, doc,
+} from 'firebase/firestore';
 
 import { ConfigService } from './config.service';
+import { FirebaseService } from './firebase.service';
 import {
   Scenario,
   ScenarioBundle,
@@ -11,52 +15,38 @@ import { Risk, CounterRisk } from '../models/risk.model';
 import { Dependency, DependencyType, Task } from '../models/task.model';
 
 /**
- * Loads scenarios (plus risk catalog) from scenario.json once, caches the result,
- * and exposes helpers to fetch individual scenarios. Matches the original
- * `scenarioService` API; ported to RxJS instead of `$q`.
- *
- * NOTE: the `translateScenario` path from the AngularJS service handled an older
- * XML-derived scenario format ("ProjectNameXML", "Zadanie", "Zasob"). It is preserved
- * here but is only invoked for objects that look like that legacy shape.
+ * Loads scenarios from Firestore (primary) with automatic fallback to the
+ * bundled `scenario.json` when Firestore is empty. This lets the app work
+ * out-of-the-box before an admin has imported the catalog, while allowing
+ * Firestore to become the single source of truth afterward.
  */
 @Injectable({ providedIn: 'root' })
 export class ScenarioService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(ConfigService);
+  private readonly firebase = inject(FirebaseService);
 
   private scenarios$?: Observable<Scenario[]>;
-  /** Bumped on each invalidate; appended to the JSON URL so the browser/CDN can’t return a stale `scenario.json`. */
   private bundleFetchSeq = 0;
 
   readonly risks        = signal<Risk[]>([]);
   readonly counterRisks = signal<CounterRisk[]>([]);
 
-  /**
-   * Clears the in-memory bundle so the next `loadScenarios()` hits the network
-   * again. `shareReplay(1)` otherwise keeps the first response for the app
-   * lifetime — a common reason edits to `scenario.json` “don’t show” until a
-   * full reload, and a footgun in dev (HMR keeps the service singleton).
-   */
   invalidateBundleCache(): void {
     this.scenarios$ = undefined;
     this.bundleFetchSeq++;
   }
 
-  /** Load-and-cache the full scenario bundle. */
   loadScenarios(): Observable<Scenario[]> {
     if (!this.scenarios$) {
-      const sep = this.config.scenarioUrl.includes('?') ? '&' : '?';
-      const url = `${this.config.scenarioUrl}${sep}t=${this.bundleFetchSeq}`;
-      const headers = new HttpHeaders({
-        'Cache-Control': 'no-cache',
-        Pragma:         'no-cache',
-      });
-      this.scenarios$ = this.http.get<ScenarioBundle>(url, { headers }).pipe(
-        map((bundle) => {
-          const scenarios = this.normalizeScenarios(bundle.projects);
-          this.risks.set(this.applyIds(bundle.risks ?? []));
-          this.counterRisks.set(this.applyIds(bundle.counterRisks ?? []));
-          return scenarios;
+      this.scenarios$ = from(this.tryLoadFromFirestore()).pipe(
+        switchMap((firestoreResult) => {
+          if (firestoreResult) {
+            this.risks.set(this.applyIds(firestoreResult.risks));
+            this.counterRisks.set(this.applyIds(firestoreResult.counterRisks));
+            return of(firestoreResult.scenarios);
+          }
+          return this.loadFromJson();
         }),
         shareReplay(1),
       );
@@ -82,7 +72,62 @@ export class ScenarioService {
     );
   }
 
-  // ── Normalization helpers ────────────────────────────────────────────
+  // ── Firestore loading ────────────────────────────────────────────────────
+
+  private async tryLoadFromFirestore(): Promise<{
+    scenarios: Scenario[];
+    risks: Risk[];
+    counterRisks: CounterRisk[];
+  } | null> {
+    try {
+      const db = this.firebase.firestore;
+      const snap = await getDocs(query(collection(db, 'scenarios'), orderBy('sortOrder')));
+      if (snap.empty) return null;
+
+      const raw = snap.docs.map((d) => d.data() as Scenario);
+      const scenarios = this.normalizeScenarios(raw);
+
+      // Load global risks catalog from config/catalog if it exists
+      let risks: Risk[] = [];
+      let counterRisks: CounterRisk[] = [];
+      try {
+        const catalogSnap = await getDoc(doc(db, 'config', 'catalog'));
+        if (catalogSnap.exists()) {
+          const catalog = catalogSnap.data() as { risks?: Risk[]; counterRisks?: CounterRisk[] };
+          risks = catalog.risks ?? [];
+          counterRisks = catalog.counterRisks ?? [];
+        }
+      } catch {
+        // catalog missing — risks stay empty; user can still play without risks
+      }
+
+      return { scenarios, risks, counterRisks };
+    } catch (err) {
+      console.warn('[ScenarioService] Firestore load failed, falling back to JSON', err);
+      return null;
+    }
+  }
+
+  // ── JSON fallback ────────────────────────────────────────────────────────
+
+  private loadFromJson(): Observable<Scenario[]> {
+    const sep = this.config.scenarioUrl.includes('?') ? '&' : '?';
+    const url = `${this.config.scenarioUrl}${sep}t=${this.bundleFetchSeq}`;
+    const headers = new HttpHeaders({
+      'Cache-Control': 'no-cache',
+      Pragma:         'no-cache',
+    });
+    return this.http.get<ScenarioBundle>(url, { headers }).pipe(
+      map((bundle) => {
+        const scenarios = this.normalizeScenarios(bundle.projects);
+        this.risks.set(this.applyIds(bundle.risks ?? []));
+        this.counterRisks.set(this.applyIds(bundle.counterRisks ?? []));
+        return scenarios;
+      }),
+    );
+  }
+
+  // ── Normalization helpers ────────────────────────────────────────────────
 
   private normalizeScenarios(raw: unknown[]): Scenario[] {
     return raw.map((r, i) => {
@@ -103,7 +148,6 @@ export class ScenarioService {
     return items;
   }
 
-  /** Convert any legacy `number[]` / string-number dependency entries to `Dependency` objects. */
   private normalizeDependencies(tasks: Task[]): void {
     const toDep = (d: number | string | Dependency): Dependency =>
       (typeof d === 'number' || typeof d === 'string') ? { id: Number(d), type: 'FS' } : d;
@@ -117,10 +161,6 @@ export class ScenarioService {
     return !!obj && typeof obj === 'object' && 'ProjectNameXML' in (obj as Record<string, unknown>);
   }
 
-  /**
-   * Convert an older XML-style scenario (ProjectNameXML / Zadanie / Zasob) into
-   * the modern Scenario shape. Preserved byte-for-byte from the original service.
-   */
   private translateLegacyScenario(scenario: LegacyScenario): Scenario {
     const newScenario: Scenario = {
       id: -1,
@@ -146,7 +186,6 @@ export class ScenarioService {
       newScenario.tasks.push(task);
     });
 
-    // Back-link dependencies (dependants -> dependsOn)
     newScenario.tasks.forEach((task, i) => {
       task.dependants.forEach((dep) => {
         if (dep.id > newScenario.tasks.length - 1) {
@@ -179,7 +218,6 @@ export class ScenarioService {
   }
 }
 
-// Legacy (XML-derived) scenario shape — kept as a local type, not exported.
 interface LegacyZadanie { I: number[]; }
 interface LegacyZasob   { Nazwa: string; I: number[]; }
 interface LegacyScenario {

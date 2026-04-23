@@ -599,7 +599,7 @@ export class SymulatorService {
       let change = resource.speed;
       change -= (numberOfTasks - 1) * scenario.multitaskingPenalty;
       change /= numberOfTasks;
-      if (resourcesCount > 0) change -= (resourcesCount - 1) * scenario.crashingPenalty;
+      if (resourcesCount > 0) change -= (resourcesCount - 1) * scenario.crashingPenalty * 0.9;
       change += resource.turnCorrect;
       // Lower motivation slows the resource down proportionally.
       change *= resource.motivation ?? this.config.motivationMax;

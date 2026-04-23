@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from './features/layout/layout.component';
+import { adminGuard } from './core/guards/admin.guard';
 
 /**
  * Mirrors the original ui-router state tree:
@@ -19,6 +20,12 @@ export const routes: Routes = [
         path: 'welcome',
         loadComponent: () =>
           import('./features/welcome/welcome.component').then((m) => m.WelcomeComponent),
+      },
+      {
+        path: 'admin',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/admin/admin.component').then((m) => m.AdminComponent),
       },
       {
         path: 'game/:scenario',

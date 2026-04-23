@@ -22,7 +22,7 @@ import {
   onLog,
   registerVersion,
   setLogLevel
-} from "./chunk-C5Y3XRDM.js";
+} from "./chunk-VJ6PTTRV.js";
 import "./chunk-5K356HEJ.js";
 
 // node_modules/firebase/app/dist/esm/index.esm.js

@@ -1,9 +1,10 @@
-import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '@core/services/user.service';
 import { Subscription } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-layout',
@@ -37,6 +38,19 @@ import { Subscription } from 'rxjs';
       border-color: rgba(255,255,255,0.6);
       color: #fff;
     }
+    .logout-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      color: #2563eb;
+      font-weight: 500;
+      font-size: inherit;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .logout-btn:hover { text-decoration: underline; }
   `],
   template: `
     <div class="site-wrapper">
@@ -53,10 +67,17 @@ import { Subscription } from 'rxjs';
             <strong>{{ user.currentUser()?.nick }}</strong>
           </p>
           <p>
-            <a href="javascript:void(0)" (click)="logout()">
+            <button class="logout-btn" type="button" (click)="logout()">
               {{ 'OFFCANVAS_logout' | translate }}
-            </a>
+            </button>
           </p>
+          @if (isAdmin()) {
+            <p>
+              <a [routerLink]="['/admin']" (click)="toggleOffCanvas()">
+                &#9881; Scenario admin
+              </a>
+            </p>
+          }
           @if (user.savedPlans().length) {
             <h3>{{ 'OFFCANVAS_saved_scenarios' | translate }}</h3>
             <ul>
@@ -133,6 +154,9 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private readonly translate = inject(TranslateService);
   readonly offCanvasOpen = signal(false);
   readonly currentLang = signal(this.translate.currentLang ?? this.translate.defaultLang);
+  readonly isAdmin = computed(() =>
+    (environment as { adminEmails?: string[] }).adminEmails?.includes(this.user.currentUser()?.email ?? '') ?? false
+  );
   private langSub?: Subscription;
 
   ngOnInit(): void {
@@ -156,6 +180,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
   logout(): void {
     this.user.resetLastSignedUser();
     this.offCanvasOpen.set(false);
-    this.router.navigate(['/welcome']);
+    // Navigate to root first so the router always re-enters /welcome even if
+    // we're already there (same-URL navigation is a no-op with hash routing).
+    this.router.navigateByUrl('/').then(() => this.router.navigate(['/welcome']));
   }
 }

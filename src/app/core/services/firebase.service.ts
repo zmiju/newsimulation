@@ -8,6 +8,7 @@ import {
 import { Analytics, getAnalytics } from 'firebase/analytics';
 import { Database, getDatabase } from 'firebase/database';
 import { Firestore, getFirestore } from 'firebase/firestore';
+import { Auth, getAuth, signInAnonymously } from 'firebase/auth';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -17,6 +18,7 @@ export class FirebaseService {
   readonly analytics: Analytics;
   readonly database: Database;
   readonly firestore: Firestore;
+  readonly auth: Auth;
 
   constructor() {
     this.app = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
@@ -28,6 +30,14 @@ export class FirebaseService {
     this.analytics = getAnalytics(this.app);
     this.database = getDatabase(this.app);
     this.firestore = getFirestore(this.app);
+
+    // Sign in anonymously so Firestore rules that require request.auth != null pass.
+    // The app uses its own email-based identity (localStorage) for the game UI;
+    // this anonymous token is only needed to satisfy Firestore security rules.
+    this.auth = getAuth(this.app);
+    signInAnonymously(this.auth).catch((err) => {
+      console.warn('[FirebaseService] Anonymous sign-in failed', err);
+    });
   }
 
   private tryInitAppCheck(app: FirebaseApp): AppCheck | undefined {
